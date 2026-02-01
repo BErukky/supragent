@@ -1,0 +1,15 @@
+{
+    "final_signal": "LONG_BIAS",
+    "confidence": "HIGH",
+    "reasoning": "Full Alignment: HTF Bullish & LTF Bullish.",
+    "details": {
+        "htf_state": "BULLISH",
+        "ltf_state": "BULLISH",
+        "raw_ltf_structure": [
+            {"type": "HL", "price": 42000.0, "index": 10},
+            {"type": "HH", "price": 43000.0, "index": 20},
+            {"type": "HL", "price": 42500.0, "index": 30},
+            {"type": "HH", "price": 44000.0, "index": 40}
+        ]
+    }
+}

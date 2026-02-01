@@ -1,0 +1,6 @@
+{
+  "risk_level": "LOW",
+  "sentiment_score": 6,
+  "permits_trade": true,
+  "flagged_keywords": ["bullish", "adoption"]
+}
