@@ -10,20 +10,24 @@ KEYWORDS = {
         "insolvent": {"score": -20, "penalty": 100},
         "bankruptcy": {"score": -20, "penalty": 100},
         "sec lawsuit": {"score": -10, "penalty": 60},
-        "ban": {"score": -10, "penalty": 80}
+        "crypto ban": {"score": -15, "penalty": 100},
+        "trading halt": {"score": -10, "penalty": 80},
+        "exploit": {"score": -15, "penalty": 90}
     },
     "NEGATIVE": {
         "inflation": {"score": -5, "penalty": 20},
         "rate hike": {"score": -5, "penalty": 30},
-        "dump": {"score": -3, "penalty": 10},
-        "liquidation": {"score": -4, "penalty": 25}
+        "market dump": {"score": -5, "penalty": 30},
+        "liquidation": {"score": -4, "penalty": 25},
+        "bearish": {"score": -3, "penalty": 10}
     },
     "POSITIVE": {
         "etf approval": {"score": 15, "penalty": 0},
         "partnership": {"score": 5, "penalty": 0},
         "adoption": {"score": 5, "penalty": 0},
-        "bullish": {"score": 2, "penalty": 0},
-        "all time high": {"score": 5, "penalty": 0}
+        "bullish": {"score": 5, "penalty": 0},
+        "all time high": {"score": 8, "penalty": 0},
+        "breakout": {"score": 5, "penalty": 0}
     }
 }
 

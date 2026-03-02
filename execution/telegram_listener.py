@@ -44,22 +44,21 @@ def process_command(chat_id, command, args):
         msg = (
             "🤖 *Super Signals Bot Interface*\n\n"
             "Available Commands:\n"
-            "• `/scan` - Run full market scan (Top 10)\n"
-            "• `/analyze <SYMBOL>` - Analyze specific coin (e.g. `/analyze BTC/USD`)\n"
+            "• `/scan` - Full Market Scan (Top 10 + News)\n"
+            "• `/scan_tech` - Pure Technical Scan (Ignore News)\n"
+            "• `/analyze <SYMBOL>` - Deep analysis of a coin\n"
             "• `/help` - Show this menu"
         )
         send_message(chat_id, msg)
 
-    elif command == "/scan":
-        send_message(chat_id, "🔍 *Starting Market Scan...* (This may take ~30s)")
+    elif command == "/scan" or command == "/scan_tech":
+        no_news = (command == "/scan_tech")
+        send_message(chat_id, f"🔍 *Starting {'Technical ' if no_news else 'Full '}Market Scan...*")
         try:
-            # Run market_scanner.py
-            # Note: market_scanner.py already sends Telegram Alerts on hits.
-            # We just capture stdout for a summary.
-            result = subprocess.run(
-                [sys.executable, "execution/market_scanner.py"],
-                capture_output=True, text=True
-            )
+            cmd = [sys.executable, "execution/market_scanner.py"]
+            if no_news: cmd.append("--no_news")
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
             
             # Check output for "No high-confidence" message
             if "No high-confidence setups found" in result.stdout:
