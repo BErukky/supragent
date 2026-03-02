@@ -2,102 +2,88 @@ import argparse
 import json
 import sys
 
-# Simple internal database of keywords
-# In production, load this from a config file
+# Simple internal database of keywords with historical reaction scores
+# Score = Emotional Sentiment | Penalty = System Risk Overlay
 KEYWORDS = {
     "CRITICAL_RISK": {
-        "hack": -10,
-        "insolvent": -10,
-        "bankruptcy": -10,
-        "sec lawsuit": -8,
-        "ban": -8
+        "hack": {"score": -20, "penalty": 100},
+        "insolvent": {"score": -20, "penalty": 100},
+        "bankruptcy": {"score": -20, "penalty": 100},
+        "sec lawsuit": {"score": -10, "penalty": 60},
+        "ban": {"score": -10, "penalty": 80}
     },
     "NEGATIVE": {
-        "inflation": -3,
-        "rate hike": -3,
-        "dump": -2,
-        "fear": -2,
-        "liquidation": -2
+        "inflation": {"score": -5, "penalty": 20},
+        "rate hike": {"score": -5, "penalty": 30},
+        "dump": {"score": -3, "penalty": 10},
+        "liquidation": {"score": -4, "penalty": 25}
     },
     "POSITIVE": {
-        "etf approval": 8,
-        "partnership": 4,
-        "adoption": 3,
-        "bullish": 2,
-        "all time high": 3
+        "etf approval": {"score": 15, "penalty": 0},
+        "partnership": {"score": 5, "penalty": 0},
+        "adoption": {"score": 5, "penalty": 0},
+        "bullish": {"score": 2, "penalty": 0},
+        "all time high": {"score": 5, "penalty": 0}
     }
 }
 
-def analyze_sentiment(headlines):
-    """
-    Analyzes a list of headlines against the keyword database.
-    """
-    total_score = 0
+def analyze_news_v2(headlines):
+    total_sentiment = 0
+    total_penalty = 0
     flagged = []
-    trade_permitted = True
     
     queries = [h.lower() for h in headlines]
     
     for headline in queries:
-        # Check Critical
-        for word, score in KEYWORDS["CRITICAL_RISK"].items():
-            if word in headline:
-                total_score += score
-                flagged.append(word)
-                trade_permitted = False
-                
-        # Check Negative
-        for word, score in KEYWORDS["NEGATIVE"].items():
-            if word in headline:
-                total_score += score
-                
-        # Check Positive
-        for word, score in KEYWORDS["POSITIVE"].items():
-            if word in headline:
-                total_score += score
-
-    # Determine Risk Level based on Score
+        for category, words in KEYWORDS.items():
+            for word, config in words.items():
+                if word in headline:
+                    total_sentiment += config['score']
+                    total_penalty += config['penalty']
+                    flagged.append(word)
+                    
+    # Clamp penalty
+    total_penalty = min(100, total_penalty)
+    
+    # Determine Risk Level
     risk_level = "LOW"
-    if not trade_permitted:
-        risk_level = "CRITICAL"
-    elif total_score < -5:
-        risk_level = "HIGH"
-    elif total_score < 0:
-        risk_level = "MEDIUM"
-        
+    if total_penalty >= 80: risk_level = "CRITICAL"
+    elif total_penalty >= 40: risk_level = "HIGH"
+    elif total_penalty >= 20: risk_level = "MEDIUM"
+    
+    # Layer 4 score starts at 10 (Neutral) and moves by sentiment
+    # Governance will use 'penalty' to subtract from total confidence
+    l4_score = round(max(0, min(10, 5 + (total_sentiment / 2.0))), 2)
+
     return {
         "risk_level": risk_level,
-        "sentiment_score": total_score,
-        "permits_trade": trade_permitted,
-        "flagged_keywords": list(set(flagged))
+        "sentiment_score": round(float(total_sentiment), 2),
+        "risk_penalty": int(total_penalty),
+        "permits_trade": total_penalty < 80,
+        "layer4_score": l4_score,
+        "flagged_keywords": list(set(flagged)),
+        "reasoning": f"Sentiment: {total_sentiment}. Risk Penalty: {total_penalty}. Level: {risk_level}"
     }
 
 def main():
-    parser = argparse.ArgumentParser(description='Analyze News Risk.')
+    parser = argparse.ArgumentParser(description='Analyze News Risk v2.')
     parser.add_argument('--input', type=str, help='Path to JSON file with headlines list')
-    # Or allow direct text input for testing
     parser.add_argument('--text', type=str, nargs='+', help='Direct headline input')
-    
     args = parser.parse_args()
     
     headlines = []
-    
     try:
         if args.input:
             with open(args.input, 'r') as f:
                 data = json.load(f)
                 headlines = data if isinstance(data, list) else data.get("headlines", [])
-        
-        if args.text:
-            headlines.extend(args.text)
-            
+        if args.text: headlines.extend(args.text)
         if not headlines:
             print(json.dumps({"error": "No headlines provided"}))
             sys.exit(1)
             
-        result = analyze_sentiment(headlines)
+        result = analyze_news_v2(headlines)
         print(json.dumps(result, indent=2))
-        
     except Exception as e:
         print(json.dumps({"error": str(e)}))
         sys.exit(1)

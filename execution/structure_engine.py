@@ -28,35 +28,53 @@ def identify_swings(df, length=5):
             
     return df
 
-def detect_liquidity_pools(structure, variance=0.001):
+def calculate_swing_clarity(df, index, length=5):
     """
-    Detects clusters of equal highs/lows (Liquidity Pools).
+    Measures the 'prominence' of a swing point as a numeric confidence weight (0.0-1.0).
+    Higher clarity = more significant rejection from the level.
     """
-    pools = []
+    is_high = df.at[index, 'is_swing_high']
+    price = df.at[index, 'high'] if is_high else df.at[index, 'low']
     
+    nearby = df.iloc[index-length:index+length+1]
+    # Simple clarity: range of the swing candle relative to average local volatility
+    local_range = nearby['high'].max() - nearby['low'].min()
+    if local_range == 0: return 0.5
+    
+    # Distance from nearest high/low
+    if is_high:
+        rejection = (price - nearby['low'].min()) / local_range
+    else:
+        rejection = (nearby['high'].max() - price) / local_range
+        
+    return min(1.0, max(0.1, rejection))
+
+def detect_liquidity_pools(structure, variance=0.001):
+    pools = []
     highs = [s for s in structure if 'H' in s['type']]
     lows = [s for s in structure if 'L' in s['type']]
     
     # Check for Equal Highs (BSL)
     for i in range(len(highs)):
         for j in range(i + 1, len(highs)):
-            if abs(highs[i]['price'] - highs[j]['price']) / highs[i]['price'] <= variance:
-                pools.append({"type": "BUY_SIDE", "level": max(highs[i]['price'], highs[j]['price']), "indices": [highs[i]['index'], highs[j]['index']]})
+            diff = abs(highs[i]['price'] - highs[j]['price']) / highs[i]['price']
+            if diff <= variance:
+                # Confidence weight based on how 'equal' they are
+                weight = 1.0 - (diff / variance)
+                pools.append({"type": "BUY_SIDE", "level": max(highs[i]['price'], highs[j]['price']), "weight": weight, "indices": [highs[i]['index'], highs[j]['index']]})
                 
     # Check for Equal Lows (SSL)
     for i in range(len(lows)):
         for j in range(i + 1, len(lows)):
-            if abs(lows[i]['price'] - lows[j]['price']) / lows[i]['price'] <= variance:
-                pools.append({"type": "SELL_SIDE", "level": min(lows[i]['price'], lows[j]['price']), "indices": [lows[i]['index'], lows[j]['index']]})
+            diff = abs(lows[i]['price'] - lows[j]['price']) / lows[i]['price']
+            if diff <= variance:
+                weight = 1.0 - (diff / variance)
+                pools.append({"type": "SELL_SIDE", "level": min(lows[i]['price'], lows[j]['price']), "weight": weight, "indices": [lows[i]['index'], lows[j]['index']]})
                 
     return pools
 
 def detect_sweeps(df, pools):
-    """
-    Detects if price breached a pool and reclaimed.
-    """
     active_sweeps = []
-    
     for i in range(len(df)):
         current_high = df['high'].iloc[i]
         current_low = df['low'].iloc[i]
@@ -64,38 +82,33 @@ def detect_sweeps(df, pools):
         
         for pool in pools:
             if pool['type'] == "BUY_SIDE":
-                # Wick above pool, but close below pool
                 if current_high > pool['level'] and current_close < pool['level']:
-                    active_sweeps.append({"type": "BUY_SIDE_SWEEP", "index": i, "level": pool['level']})
+                    magnitude = (current_high - pool['level']) / pool['level']
+                    confidence = min(1.0, pool['weight'] * (1.0 + magnitude * 100))
+                    active_sweeps.append({"type": "BUY_SIDE_SWEEP", "index": int(i), "level": pool['level'], "confidence": confidence})
             elif pool['type'] == "SELL_SIDE":
-                # Wick below pool, but close above pool
                 if current_low < pool['level'] and current_close > pool['level']:
-                    active_sweeps.append({"type": "SELL_SIDE_SWEEP", "index": i, "level": pool['level']})
-                    
+                    magnitude = (pool['level'] - current_low) / pool['level']
+                    confidence = min(1.0, pool['weight'] * (1.0 + magnitude * 100))
+                    active_sweeps.append({"type": "SELL_SIDE_SWEEP", "index": int(i), "level": pool['level'], "confidence": confidence})
     return active_sweeps
 
-def calculate_layer1_score(state, sweep_event):
+def calculate_layer1_score(state, sweep_event, structure_confidence):
     """
-    Calculates score from 0-30 based on structure and sweeps.
+    v2: Weights bias by structural confidence.
     """
     score = 0
-    
-    # Base Structure Score (Max 15)
-    if state == "BULLISH" or state == "BEARISH":
-        score += 15
+    # Structure (Max 15 * Confidence)
+    if state in ["BULLISH", "BEARISH"]:
+        score += (15 * structure_confidence)
     elif state == "RANGE":
-        score += 5
-    else:
-        score += 0
+        score += (5 * structure_confidence)
         
-    # Liquidity Modifiers (Max ±15)
+    # Liquidity (Max 15 * Sweep Confidence)
     if sweep_event:
-        if "SWEEP" in sweep_event['type']:
-            # Assume sweep against trend is good. For now, simple +10 if any sweep.
-            score += 10
-            # If we had CHoCH logic here, we'd add +15.
+        score += (15 * sweep_event.get('confidence', 0.5))
     
-    return min(30, score)
+    return round(min(30, score), 2)
 
 def determine_structure_points(df):
     structure = []
@@ -105,69 +118,64 @@ def determine_structure_points(df):
     
     for idx in swing_indices:
         row = df.loc[idx]
+        clarity = calculate_swing_clarity(df, idx)
         if row['is_swing_high']:
             label = "H"
-            if last_high is not None:
-                label = "HH" if row['high'] > last_high else "LH"
+            if last_high is not None: label = "HH" if row['high'] > last_high else "LH"
             last_high = row['high']
-            structure.append({"type": label, "price": row['high'], "timestamp": str(row['timestamp']), "index": int(idx)})
+            structure.append({"type": label, "price": row['high'], "index": int(idx), "confidence": clarity})
         elif row['is_swing_low']:
             label = "L"
-            if last_low is not None:
-                label = "LL" if row['low'] < last_low else "HL"
+            if last_low is not None: label = "LL" if row['low'] < last_low else "HL"
             last_low = row['low']
-            structure.append({"type": label, "price": row['low'], "timestamp": str(row['timestamp']), "index": int(idx)})
+            structure.append({"type": label, "price": row['low'], "index": int(idx), "confidence": clarity})
     return structure
 
 def determine_market_state(structure):
-    if len(structure) < 4: return "UNCLEAR"
+    if len(structure) < 4: return "UNCLEAR", 0.1
     recent = structure[-4:]
+    conf = np.mean([s['confidence'] for s in recent])
     last_high = next((s for s in reversed(recent) if 'H' in s['type']), None)
     last_low = next((s for s in reversed(recent) if 'L' in s['type']), None)
     
+    state = "RANGE"
     if last_high and last_low:
-        if last_high['type'] == 'HH' and last_low['type'] == 'HL': return "BULLISH"
-        if last_high['type'] == 'LH' and last_low['type'] == 'LL': return "BEARISH"
-    return "RANGE"
+        if last_high['type'] == 'HH' and last_low['type'] == 'HL': state = "BULLISH"
+        elif last_high['type'] == 'LH' and last_low['type'] == 'LL': state = "BEARISH"
+    return state, conf
 
 def analyze_layer1(df):
-    """
-    High-level entry point for Layer 1 analysis.
-    """
     df = identify_swings(df, length=3)
     structure = determine_structure_points(df)
-    state = determine_market_state(structure)
+    state, structure_conf = determine_market_state(structure)
     
-    # Liquidity Logic
     pools = detect_liquidity_pools(structure)
     sweeps = detect_sweeps(df, pools)
-    
     last_sweep = sweeps[-1] if sweeps else None
-    score = calculate_layer1_score(state, last_sweep)
+    
+    score = calculate_layer1_score(state, last_sweep, structure_conf)
     
     return {
         "structure_bias": "NEUTRAL" if state == "RANGE" else state,
-        "structure_state": "RANGE" if state == "RANGE" else "TREND",
+        "structure_confidence": round(float(structure_conf), 2),
         "liquidity_context": {
             "type": last_sweep['type'].split('_')[0] + "_SIDE" if last_sweep else "NONE",
             "event": "SWEEP" if last_sweep else "NONE",
-            "level": last_sweep['level'] if last_sweep else None
+            "confidence": round(float(last_sweep['confidence']), 2) if last_sweep else 0.0
         },
         "layer1_score": score,
-        "notes": f"{state} structure. Last sweep: {last_sweep['type'] if last_sweep else 'None'}",
-        "raw_structure": structure # Useful for confluence/risk
+        "notes": f"{state} structure (Conf:{round(structure_conf,2)}). Last sweep: {last_sweep['type'] if last_sweep else 'None'}",
+        "raw_structure": structure
     }
 
 def main():
-    parser = argparse.ArgumentParser(description='Analyze Market Structure & Liquidity.')
+    parser = argparse.ArgumentParser(description='Analyze Market Structure & Liquidity v2.')
     parser.add_argument('--input', type=str, required=True, help='Path to CSV file')
     args = parser.parse_args()
-    
     try:
         df = pd.read_csv(args.input)
         result = analyze_layer1(df)
         print(json.dumps(result, indent=2))
-        
     except Exception as e:
         print(json.dumps({"error": str(e)}))
         sys.exit(1)

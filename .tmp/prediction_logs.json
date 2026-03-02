@@ -1,0 +1,527 @@
+[
+  {
+    "timestamp": "2026-02-02 00:03:17.594726",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 77527.2109375
+  },
+  {
+    "timestamp": "2026-02-03 09:54:15.827809",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 77936.09375
+  },
+  {
+    "timestamp": "2026-02-03 09:55:12.191337",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 2330.089599609375
+  },
+  {
+    "timestamp": "2026-02-03 09:55:48.772634",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 1.5998395681381226
+  },
+  {
+    "timestamp": "2026-02-03 09:56:35.008273",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 0.2997669875621795
+  },
+  {
+    "timestamp": "2026-02-03 10:05:40.388266",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 78405.5546875
+  },
+  {
+    "timestamp": "2026-02-03 10:06:09.216985",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 2309.113037109375
+  },
+  {
+    "timestamp": "2026-02-03 10:06:37.600045",
+    "symbol": "SOL/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 103.02073669433594
+  },
+  {
+    "timestamp": "2026-02-03 10:07:08.189718",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 1.5998395681381226
+  },
+  {
+    "timestamp": "2026-02-03 10:07:38.613157",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 0.2997669875621795
+  },
+  {
+    "timestamp": "2026-02-03 10:08:20.444180",
+    "symbol": "DOGE/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 0.1061277687549591
+  },
+  {
+    "timestamp": "2026-02-03 10:09:04.194843",
+    "symbol": "DOT/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 1.5315337181091309
+  },
+  {
+    "timestamp": "2026-02-03 10:09:57.919652",
+    "symbol": "LTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 60.032527923583984
+  },
+  {
+    "timestamp": "2026-02-03 10:10:31.557155",
+    "symbol": "LINK/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 9.749723434448242
+  },
+  {
+    "timestamp": "2026-02-03 10:26:57.574415",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 39.85,
+    "entry_price": 78942.1796875
+  },
+  {
+    "timestamp": "2026-02-03 10:27:21.462414",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 52.23,
+    "entry_price": 2330.089599609375
+  },
+  {
+    "timestamp": "2026-02-03 10:27:47.250436",
+    "symbol": "SOL/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 48.38,
+    "entry_price": 103.02073669433594
+  },
+  {
+    "timestamp": "2026-02-03 10:28:12.025768",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 46.54,
+    "entry_price": 1.5998395681381226
+  },
+  {
+    "timestamp": "2026-02-03 10:28:42.151696",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 45.84,
+    "entry_price": 0.2997669875621795
+  },
+  {
+    "timestamp": "2026-02-03 10:29:08.728024",
+    "symbol": "DOGE/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 52.6,
+    "entry_price": 0.1061277687549591
+  },
+  {
+    "timestamp": "2026-02-03 10:29:40.531753",
+    "symbol": "DOT/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 48.35,
+    "entry_price": 1.5315337181091309
+  },
+  {
+    "timestamp": "2026-02-03 10:30:43.147420",
+    "symbol": "LTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 58.55,
+    "entry_price": 60.32244873046875
+  },
+  {
+    "timestamp": "2026-02-03 10:31:30.219644",
+    "symbol": "LINK/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 46.13,
+    "entry_price": 9.749723434448242
+  },
+  {
+    "timestamp": "2026-02-03 10:49:59.498280",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 78942.1796875
+  },
+  {
+    "timestamp": "2026-02-03 10:50:38.397376",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 52.21,
+    "entry_price": 2330.089599609375
+  },
+  {
+    "timestamp": "2026-02-03 10:51:36.500889",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 1.622902274131775
+  },
+  {
+    "timestamp": "2026-02-03 10:57:08.733080",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 78942.1796875
+  },
+  {
+    "timestamp": "2026-02-07 15:33:30.309176",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 69261.984375
+  },
+  {
+    "timestamp": "2026-02-07 15:34:31.359628",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 2027.547607421875
+  },
+  {
+    "timestamp": "2026-02-07 15:39:05.775215",
+    "symbol": "SOL/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 85.69253540039062
+  },
+  {
+    "timestamp": "2026-02-07 15:40:57.199331",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 40.68,
+    "entry_price": 1.4282318353652954
+  },
+  {
+    "timestamp": "2026-02-07 15:41:12.951323",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 1.4282318353652954
+  },
+  {
+    "timestamp": "2026-02-07 15:42:45.229559",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 50.12,
+    "entry_price": 2027.547607421875
+  },
+  {
+    "timestamp": "2026-02-07 15:43:51.069202",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 0.2733445167541504
+  },
+  {
+    "timestamp": "2026-02-07 15:45:18.898222",
+    "symbol": "SOL/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 36.84,
+    "entry_price": 85.69253540039062
+  },
+  {
+    "timestamp": "2026-02-07 15:46:16.755506",
+    "symbol": "DOGE/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 0.097268171608448
+  },
+  {
+    "timestamp": "2026-02-07 15:47:00.960008",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 40.68,
+    "entry_price": 1.4282318353652954
+  },
+  {
+    "timestamp": "2026-02-07 15:48:52.018429",
+    "symbol": "DOT/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 0.271222174167633
+  },
+  {
+    "timestamp": "2026-02-07 15:49:19.917812",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 40.37,
+    "entry_price": 0.271222174167633
+  },
+  {
+    "timestamp": "2026-02-07 15:54:50.762608",
+    "symbol": "DOGE/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 47.6,
+    "entry_price": 0.097268171608448
+  },
+  {
+    "timestamp": "2026-02-07 15:59:02.289115",
+    "symbol": "LTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 54.36494064331055
+  },
+  {
+    "timestamp": "2026-02-07 16:00:05.920288",
+    "symbol": "DOT/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 50.83,
+    "entry_price": 1.362152934074402
+  },
+  {
+    "timestamp": "2026-02-07 16:02:36.996795",
+    "symbol": "LINK/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 8.878791809082031
+  },
+  {
+    "timestamp": "2026-02-07 16:04:55.804139",
+    "symbol": "LTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 50.43,
+    "entry_price": 54.12205123901367
+  },
+  {
+    "timestamp": "2026-02-07 16:07:54.323613",
+    "symbol": "LINK/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 39.78,
+    "entry_price": 8.878791809082031
+  },
+  {
+    "timestamp": "2026-02-07 16:50:35.909000",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 68375.5546875
+  },
+  {
+    "timestamp": "2026-02-07 16:52:01.928296",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 2011.58740234375
+  },
+  {
+    "timestamp": "2026-02-07 16:53:08.773232",
+    "symbol": "SOL/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 85.69740295410156
+  },
+  {
+    "timestamp": "2026-02-07 16:54:24.501064",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 1.39489483833313
+  },
+  {
+    "timestamp": "2026-02-07 16:55:27.615074",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 0.2689871788024902
+  },
+  {
+    "timestamp": "2026-02-07 16:56:24.708840",
+    "symbol": "DOGE/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 0.095581330358982
+  },
+  {
+    "timestamp": "2026-02-07 16:57:27.167994",
+    "symbol": "DOT/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 1.3308484554290771
+  },
+  {
+    "timestamp": "2026-02-07 17:10:44.161265",
+    "symbol": "LTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 48.98,
+    "entry_price": 53.70294952392578
+  },
+  {
+    "timestamp": "2026-02-07 17:11:28.383610",
+    "symbol": "LINK/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 39.78,
+    "entry_price": 8.878791809082031
+  },
+  {
+    "timestamp": "2026-02-08 11:33:44.587469",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 70681.6171875
+  },
+  {
+    "timestamp": "2026-02-08 11:34:57.329763",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 2118.64208984375
+  },
+  {
+    "timestamp": "2026-02-08 11:35:54.458513",
+    "symbol": "SOL/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 88.67303466796875
+  },
+  {
+    "timestamp": "2026-02-08 11:37:14.618333",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 1.453846096992493
+  },
+  {
+    "timestamp": "2026-02-08 11:38:18.729448",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 0.2755100131034851
+  },
+  {
+    "timestamp": "2026-02-08 11:39:27.306832",
+    "symbol": "DOGE/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 0.0985215827822685
+  },
+  {
+    "timestamp": "2026-02-08 11:40:31.264310",
+    "symbol": "DOT/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 1.3725210428237915
+  },
+  {
+    "timestamp": "2026-02-08 11:42:06.728800",
+    "symbol": "LTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 55.66569900512695
+  },
+  {
+    "timestamp": "2026-02-08 11:42:53.445598",
+    "symbol": "LINK/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 8.952095031738281
+  },
+  {
+    "timestamp": "2026-02-08 12:54:33.720244",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 69862.25
+  },
+  {
+    "timestamp": "2026-02-08 13:36:27.704562",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 71117.5859375
+  },
+  {
+    "timestamp": "2026-02-08 13:37:40.683170",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 2084.482421875
+  },
+  {
+    "timestamp": "2026-02-08 13:39:01.876549",
+    "symbol": "SOL/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 45.44,
+    "entry_price": 86.60774993896484
+  },
+  {
+    "timestamp": "2026-02-08 13:40:01.616374",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 1.4300788640975952
+  },
+  {
+    "timestamp": "2026-02-08 13:41:08.920050",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 0.2703557908535003
+  },
+  {
+    "timestamp": "2026-02-08 13:42:14.833502",
+    "symbol": "DOGE/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 0.0983248651027679
+  },
+  {
+    "timestamp": "2026-02-08 13:43:06.990284",
+    "symbol": "DOT/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 1.369428277015686
+  },
+  {
+    "timestamp": "2026-02-08 13:44:31.559600",
+    "symbol": "LTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 55.46939086914063
+  },
+  {
+    "timestamp": "2026-02-08 13:45:31.126502",
+    "symbol": "LINK/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 8.827412605285645
+  },
+  {
+    "timestamp": "2026-03-02 16:47:43.093185",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 48831.692285177895
+  },
+  {
+    "timestamp": "2026-03-02 16:53:16.900408",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 0,
+    "entry_price": 65309.109375
+  }
+]

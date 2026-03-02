@@ -1,1 +1,1 @@
-{"historical_bias": "BEARISH", "avg_future_return_pct": -6.36, "match_count": 3, "top_match_dates": ["1769", "1769", "1769"], "similarity_scores": [0.52, 0.48, 0.33]}
+{"historical_bias": "BULLISH", "avg_weighted_return": 0.2285, "match_confidence": 0.08, "false_positive_risk": 0.0, "layer3_score": 1.64, "reasoning": "Probabilistic Similarity: 8.2%. Result: BULLISH (FP Risk: 0.0)"}

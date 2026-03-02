@@ -1,1 +1,1 @@
-{"risk_level": "CRITICAL", "sentiment_score": -13, "permits_trade": false, "flagged_keywords": ["ban"]}
+{"risk_level": "CRITICAL", "sentiment_score": -35.0, "risk_penalty": 100, "permits_trade": false, "layer4_score": 0, "flagged_keywords": ["ban", "inflation"], "reasoning": "Sentiment: -35. Risk Penalty: 100. Level: CRITICAL"}

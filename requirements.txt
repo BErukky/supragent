@@ -1,0 +1,9 @@
+pandas
+numpy
+yfinance
+ccxt
+requests
+python-dotenv
+flask
+gunicorn
+lxml

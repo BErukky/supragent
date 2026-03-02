@@ -1,91 +1,116 @@
-# 🌌 Super Signals: Predictive Market Intelligence
+# 🌌 Super Signals v2.0: Predictive Market Intelligence
 
-Super Signals is an advanced, non-executing analytical framework designed for high-probability cryptocurrency trading research. It utilizes a **5-Layer Intelligence Engine** to synthesize market structure, liquidity behavior, historical analogs, and real-world sentiment into actionable decision data.
-
----
-
-## 🧠 The 5-Layer Engine
-
-The system analyzes the market through five distinct lenses:
-
-1.  **📊 Layer 1: Market Structure & Liquidity**: Detects fractal swing points (HH, HL, LL, LH) and **Liquidity Sweeps** (Equal Highs/Lows).
-2.  **🔗 Layer 2: Multi-Timeframe Confluence**: Cross-references Higher Timeframe (HTF) context with Lower Timeframe (LTF) confirmation.
-3.  **⏳ Layer 3: Historical Similarity**: Compares current setups to 1,000 candle windows of history to find statistical analogs.
-4.  **🗞️ Layer 4: News & Narrative**: Automatically scrapes the latest headlines from **CoinDesk, CoinTelegraph, and CryptoPanic** to assign real-time risk weights.
-5.  **⚖️ Layer 5: Probability & Risk**: Synthesizes all layers into a final score (0-100) and calculates **automated TP/SL advisory levels**.
+Super Signals is a high-precision, non-executing analytical framework designed for cryptocurrency trading research. It utilizes an upgraded **5-Layer Intelligence Engine** to convert raw market data into institutional-grade decision intelligence.
 
 ---
 
-## 🛡️ Confidence Governance (Safety First)
+## 🧠 The v2.0 Intelligence Model
 
-The system is governed by a strict safety protocol:
+The system analyzes the market through a series of numeric, weighted filters to ensure maximum objectivity:
 
-- **News Override**: High-risk news (e.g., hacks, macro data) forces an automatic `WAIT` state.
-- **Uncertainty Moderation**: Confidence is automatically reduced if historical data is unstable or news is mixed.
-- **Selective Signaling**: Bias is only issued if trust exceeds the **75%** threshold.
+1.  **📊 Layer 1: Structure & Liquidity**: Quantifies **Swing Clarity** (0.0-1.0) and detects **Liquidity Sweeps**. It ignores news and indicators to find the pure "market truth."
+2.  **🔗 Layer 2: Trend Coherence**: Measures the precision of alignment between Higher Timeframes (HTF) and Lower Timeframes (LTF). Full alignment earns a 1.0 coherence score.
+3.  **⏳ Layer 3: Probabilistic Similarity**: Uses Euclidean pattern matching to find historical analogs and calculates a **Probability %** of success based on past returns.
+4.  **🗞️ Layer 4: Autonomous News IQ**: Automatically scrapes **CoinDesk, CoinTelegraph, and CryptoPanic**. It applies **Risk Penalties** for high-impact negative events.
+5.  **⚖️ Layer 5: Governance & Synthesis**: Aggregates all weights, applies safety overrides, and outputs automated **TP/SL advisory levels**.
 
 ---
 
-## 🚀 Getting Started
+## 🛡️ Governance & Safety Locks
 
-### Prerequisites
+- **Critical Risk Lock**: Any "Critical" news (hacks, sanctions) triggers a mandatory `WAIT` state.
+- **Selective Threshold**: A signal is only issued if total confidence is **≥ 75%**.
+- **Analytical Feedback Loop**: All predictions are logged to `.tmp/prediction_logs.json` to track accuracy over time.
 
-- Python 3.10+
-- Dependencies: `pandas`, `numpy`, `ccxt`, `yfinance`
+---
 
-### Usage (Live Data)
-
-Run the entire analysis pipeline with a single command:
+## 🚀 Usage
 
 ```powershell
-python main.py --symbol BTC/USD --htf 1h --ltf 15m
+# Multi-Asset Autonomous Scanner
+# Scans top 10 assets and alerts on high-confidence setups
+python execution/market_scanner.py
+
+# Performance Feedback Loop
+# Compares past predictions to current market price to measure accuracy
+python execution/performance_analyzer.py
 ```
 
 ---
 
-## 📈 Output Breakdown
+## 📈 Analysis Examples
 
-| Component        | Description                                     |
-| :--------------- | :---------------------------------------------- |
-| **FINAL_SIGNAL** | `LONG_BIAS`, `SHORT_BIAS`, or `WAIT / NO_TRADE` |
-| **CONFIDENCE**   | 0-100 score (Trust Level)                       |
-| **STOP_LOSS**    | Automated structural invalidation zone          |
-| **TAKE_PROFIT**  | Targets based on R:R and volatility             |
-| **REASONING**    | Detailed checklist + safety governance notes    |
+### Case A: Active Trade Bias (High Confidence)
 
-### Example Live Report
+_When layers align and the environment is safe._
 
 ```text
-========================================
-=== SUPER SIGNALS LIVE REPORT ===
-Symbol: BTC/USD | HTF: 1h | LTF: 15m
-----------------------------------------
- SIGNAL:      LONG_BIAS (82/100 Conf)
+=============================================
+=== SUPER SIGNALS v2.0 LIVE REPORT ===
+Symbol: BTC/USD | 2026-02-02 12:00:00
+---------------------------------------------
+ SIGNAL:      LONG_BIAS (88/100 Conf)
  STOP LOSS:   42,150.00
  TAKE PROFIT: 43,500.00 | 44,200.00
+ RISK OFFSET: 1.0x (Standard)
+---------------------------------------------
+--- LAYER-WISE REASONING ---
+ [L1/L2] Trend Coherent: 92%. Clear HH/HL on both timeframes.
+ [L3]    Probabilistic Match: 75% (Bullish history).
+ [L4]    Sentiment: Positive. No Risk Penalties detected.
+=============================================
+```
 
---- REASONING & GOVERNANCE ---
- Layer 1: BULLISH structure. Last sweep: SELL_SIDE_SWEEP (+10)
- History: Past analogs ended Bullish (+10)
- [!] News: Positive Sentiment (+10)
-========================================
+### Case B: Governance Wait (Safety First)
+
+_When structure is unclear or external risk is too high._
+
+```text
+=============================================
+=== SUPER SIGNALS v2.0 LIVE REPORT ===
+Symbol: BTC/USD | 2026-02-02 14:00:00
+---------------------------------------------
+ SIGNAL:      WAIT / NO_TRADE (20/100 Conf)
+---------------------------------------------
+--- LAYER-WISE REASONING ---
+ [L1/L2] Trend Coherent: 45%. Ranging structure.
+ [L3]    Probabilistic Match: 30% (Uncertain history).
+ [L4]    [!] CRITICAL: Risk Penalty (80) - News Hack Detected.
+=============================================
 ```
 
 ---
 
-## 🛡️ Risk Disclaimer
+## 📱 Telegram Integration (New)
 
-**NOT FINANCIAL ADVICE.** Super Signals is an analytical tool for informational purposes only. It does NOT execute trades. Use suggested levels as discretionary guidance only.
+The system now sends **Real-Time Alerts** for:
+
+- 🚀 **High-Confidence Signals** (>= 75%)
+- ⚠️ **Governance Warnings** (Critical News Risk)
+- 🎯 **Market Scanner Hits**
+
+### Setup
+
+1.  **Create Bot via @BotFather** on Telegram.
+2.  **Get Chat ID**: Run the helper script:
+    ```powershell
+    python execution/get_telegram_id.py <YOUR_BOT_TOKEN>
+    ```
+3.  **Configure .env**: The script above will give you the ID. Ensure your `.env` file looks like this:
+    ```ini
+    TELEGRAM_BOT_TOKEN=your_token_here
+    TELEGRAM_CHAT_ID=your_chat_id_here
+    ```
 
 ---
 
-## 📂 Project Structure
+## 📂 System Structure
 
-- `main.py`: The central pipeline orchestrator.
-- `execution/`: Core Python engines (Structure, History, News, Report).
-- `directives/`: Standard Operating Procedures (SOPs) for the logic.
-- `.tmp/`: Data buffers and intermediate JSON outputs.
+- `main.py`: Pipeline Orchestrator.
+- `execution/`: Core engines (Structure, History, News, Scraper).
+- `directives/`: Governance SOPs.
+- `.tmp/`: Data buffers and Prediction Logs.
 
 ---
 
-**Build For Strategic Consistency.**
+**Strategic Intelligence. Absolute Objectivity.**

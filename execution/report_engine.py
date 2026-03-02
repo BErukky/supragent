@@ -1,174 +1,153 @@
 import argparse
 import json
 import sys
+import os
 from datetime import datetime
+from telegram_bot import send_telegram_alert
 
-def calculate_score(structure_data, history_data, news_data):
+def aggregate_v2_confidence(str_res, hist_res, news_res):
     """
-    Calculates final confidence score (0-100) and incorporates Confidence Governance.
+    Super Signals 2.0 Aggregation Model:
+    Final Score = (L1 * 0.4) + (L2 * 0.3) + (L3 * 0.2) + (L4 * 0.1)
+    Then minus News Penalties.
     """
-    score = 50 # Start Neutral (0 confidence distance)
-    reasons = []
-    gov_notes = []
+    # Extract granular scores
+    l1_score = str_res.get("details", {}).get("ltf_layer1", {}).get("layer1_score", 0)
+    l2_score = str_res.get("layer2_score", 0)
+    l3_score = hist_res.get("layer3_score", 0)
+    l4_score = news_res.get("layer4_score", 0)
     
-    # 1. Base Structure & Layer 1 Scoring (Max +/- 30)
-    details = structure_data.get("details", {})
-    ltf_l1 = details.get("ltf_layer1", {})
-    l1_score = ltf_l1.get("layer1_score", 0)
-    structure_signal = structure_data.get("final_signal", "NO_TRADE")
+    # Scale each to 0-100 base for calculation
+    # L1 Max 30, L2 Max 30, L3 Max 20, L4 Max 10. Total Max = 90 + base offset 10 = 100
+    base_confidence = 10.0 + l1_score + l2_score + l3_score + l4_score
     
-    if structure_signal == "LONG_BIAS":
-        score += l1_score
-        reasons.append(f"Layer 1: {ltf_l1.get('notes')} (+{l1_score})")
-    elif structure_signal == "SHORT_BIAS":
-        score -= l1_score
-        reasons.append(f"Layer 1: {ltf_l1.get('notes')} (-{l1_score})")
-    else:
-        reasons.append("Structure: No clear bias (Neutral)")
-            
-    # 2. History Scoring (Max +/- 10)
-    hist_bias = history_data.get("historical_bias", "UNCLEAR")
-    if hist_bias == "BULLISH":
-        score += 10
-        reasons.append("History: Past analogs ended Bullish (+10)")
-    elif hist_bias == "BEARISH":
-        score -= 10
-        reasons.append("History: Past analogs ended Bearish (-10)")
+    # Apply Governance Penalties from News (Layer 4)
+    penalty = news_res.get("risk_penalty", 0)
+    final_confidence = max(0, base_confidence - penalty)
+    
+    # Determine Action
+    bias = str_res.get("final_signal", "WAIT / NO_TRADE")
+    action = "WAIT / NO_TRADE"
+    
+    # Governance: Selective Action
+    if final_confidence >= 75:
+        if "LONG" in bias: action = "LONG_BIAS"
+        elif "SHORT" in bias: action = "SHORT_BIAS"
+    
+    # If News is Critical, force Wait
+    if not news_res.get("permits_trade", True):
+        action = "WAIT / NO_TRADE"
         
-    # --- CONFIDENCE GOVERNANCE PHASE ---
-    
-    # A. News Override Rules
-    news_impact = news_data.get("risk_level", "NONE")
-    if news_impact == "HIGH" or news_impact == "CRITICAL":
-        gov_notes.append("[!] News: High-impact event imminent (Risk Override)")
-        return 50, "WAIT / NO_TRADE", reasons + gov_notes
-    
-    if news_impact == "MEDIUM":
-        # Moderate confidence by 20 points
-        if score > 50: score = max(50, score - 20)
-        elif score < 50: score = min(50, score + 20)
-        gov_notes.append("[!] News: Risk context detected (confidence moderated)")
+    return round(final_confidence, 2), action
 
-    # B. Historical Assimilation Sanity Check
-    # If historical return is low or bias is unclear despite structure alignment
-    if hist_bias == "UNCLEAR" and structure_signal != "NO_TRADE":
-        if score > 50: score = max(50, score - 15)
-        elif score < 50: score = min(50, score + 15)
-        gov_notes.append("[~] History: Similar structures showed instability")
-
-    # 3. Sentiment Adjustment (Layer 4) - Max +/- 10
-    news_score = news_data.get("sentiment_score", 0)
-    if news_score > 5:
-        score += 10 # This is "earned" sentiment
-        reasons.append("News: Positive Sentiment (+10)")
-    elif news_score < -5:
-        score -= 10
-        reasons.append("News: Negative Sentiment (-10)")
-
-    # Final Clamp
-    score = max(0, min(100, score))
-    
-    # Final Decision Thresholds
-    final_action = "WAIT / NO_TRADE"
-    if score >= 75:
-        final_action = "LONG_BIAS"
-    elif score <= 25:
-        final_action = "SHORT_BIAS"
-    else:
-        final_action = "WAIT / NO_TRADE"
-        if not gov_notes:
-            gov_notes.append("[!] Confidence below trust threshold (75) -> WAIT")
-        
-    return score, final_action, reasons + gov_notes
-
-def calculate_risk_levels(action, structure_data):
+def calculate_v2_risk(action, str_data, news_penalty):
     """
-    Calculates TP and SL based on LTF structure points.
+    Tightens TP/SL based on news penalty.
     """
-    if action == "NO_TRADE" or action == "WAIT / NO_TRADE":
-        return None
-
-    details = structure_data.get("details", {})
+    if "NO_TRADE" in action or "WAIT" in action: return None
+    
+    details = str_data.get("details", {})
     ltf_struct = details.get("raw_ltf_structure", [])
+    if not ltf_struct: return None
     
-    if not ltf_struct:
-        return {"note": "No structure data for risk calc"}
-        
-    last_struct_price = ltf_struct[-1]['price']
+    last_price = ltf_struct[-1]['price']
     
+    # Logic: More news risk = tighter TP targets (locking in profit early)
+    risk_multi = 1.0 - (news_penalty / 200.0) # Reduce multi if penalty > 0
+    
+    # Find SL
     sl_price = 0.0
-    tp_targets = []
-    
-    # Simple Logic:
-    # Buffer is arbitrarily 0.5% for this demo
-    buffer = last_struct_price * 0.005 
-
     if action == "LONG_BIAS":
-        # SL = Below last swing low (search backwards for a 'L' type)
-        swing_low = next((s for s in reversed(ltf_struct) if 'L' in s['type']), None)
-        if swing_low:
-             sl_price = swing_low['price'] - buffer
-        else:
-             sl_price = last_struct_price * 0.95 # Fallback 5%
+        sl_node = next((s for s in reversed(ltf_struct) if 'L' in s['type']), None)
+        sl_price = sl_node['price'] if sl_node else last_price * 0.98
+        risk = abs(last_price - sl_price)
+        tps = [round(last_price + (risk * 1.0 * risk_multi), 2), round(last_price + (risk * 2.0 * risk_multi), 2)]
+    else:
+        sl_node = next((s for s in reversed(ltf_struct) if 'H' in s['type']), None)
+        sl_price = sl_node['price'] if sl_node else last_price * 1.02
+        risk = abs(sl_price - last_price)
+        tps = [round(last_price - (risk * 1.0 * risk_multi), 2), round(last_price - (risk * 2.0 * risk_multi), 2)]
         
-        # TP = Next swing high (if above current?). For now, simplified 1.5R projection
-        risk = abs(last_struct_price - sl_price)
-        tp1 = last_struct_price + risk
-        tp2 = last_struct_price + (risk * 2)
-        tp_targets = [round(tp1, 2), round(tp2, 2)]
+    return {"STOP_LOSS": round(sl_price, 2), "TAKE_PROFIT": tps, "RISK_OFFSET": round(risk_multi, 2)}
 
-    elif action == "SHORT_BIAS":
-        # SL = Above last swing high (search backwards for a 'H' type)
-        swing_high = next((s for s in reversed(ltf_struct) if 'H' in s['type']), None)
-        if swing_high:
-             sl_price = swing_high['price'] + buffer
-        else:
-             sl_price = last_struct_price * 1.05 # Fallback 5%
-             
-        # TP
-        risk = abs(sl_price - last_struct_price)
-        tp1 = last_struct_price - risk
-        tp2 = last_struct_price - (risk * 2)
-        tp_targets = [round(tp1, 2), round(tp2, 2)]
-        
-    return {
-        "STOP_LOSS": round(sl_price, 2),
-        "TAKE_PROFIT": tp_targets,
-        "BUFFER_USED": round(buffer, 2)
+def log_outcome_prediction(symbol, action, confidence, price):
+    """
+    Stores prediction for the feedback loop.
+    """
+    log_file = ".tmp/prediction_logs.json"
+    entry = {
+        "timestamp": str(datetime.now()),
+        "symbol": symbol,
+        "action": action,
+        "confidence": confidence,
+        "entry_price": price
     }
+    logs = []
+    if os.path.exists(log_file):
+        try:
+            with open(log_file, 'r') as f: logs = json.load(f)
+        except: pass
+    logs.append(entry)
+    with open(log_file, 'w') as f: json.dump(logs, f, indent=2)
 
 def main():
-    parser = argparse.ArgumentParser(description='Generate Final Report.')
-    parser.add_argument('--structure', type=str, required=True, help='JSON file from confluence engine')
-    parser.add_argument('--history', type=str, required=True, help='JSON file from historical engine')
-    parser.add_argument('--news', type=str, required=True, help='JSON file from news engine')
+    parser = argparse.ArgumentParser(description='Super Signals 2.0 Report Engine.')
+    parser.add_argument('--structure', type=str, required=True)
+    parser.add_argument('--history', type=str, required=True)
+    parser.add_argument('--news', type=str, required=True)
+    parser.add_argument('--symbol', type=str, default="UNKNOWN")
     args = parser.parse_args()
     
     try:
-        # Load Inputs
         with open(args.structure, 'r') as f: str_data = json.load(f)
         with open(args.history, 'r') as f: hist_data = json.load(f)
         with open(args.news, 'r') as f: news_data = json.load(f)
         
-        score, action, reasons = calculate_score(str_data, hist_data, news_data)
+        conf, action = aggregate_v2_confidence(str_data, hist_data, news_data)
+        risk = calculate_v2_risk(action, str_data, news_data.get("risk_penalty", 0))
         
-        # Calculate Risk
-        risk_advisory = calculate_risk_levels(action, str_data)
+        # Log for feedback loop
+        ltf_struct = str_data.get("details", {}).get("raw_ltf_structure", [])
+        last_p = ltf_struct[-1]['price'] if ltf_struct else 0
+        log_outcome_prediction(args.symbol, action, conf, last_p)
         
+        # Governance Alerts
+        alerts = []
+        if news_data.get("risk_penalty", 0) > 0:
+            alerts.append(f"[!] NEWS: Risk Penalty {news_data['risk_penalty']} applied.")
+            if news_data.get("flagged_keywords"):
+                alerts.append(f"    Flagged: {', '.join(news_data['flagged_keywords'])}")
+        
+        if hist_data.get("false_positive_risk"):
+            alerts.append("[!] HIST: High instability/Analogue variance detected.")
+
         report = {
             "TIMESTAMP": str(datetime.now()),
             "FINAL_SIGNAL": action,
-            "CONFIDENCE_SCORE": score,
-            "RISK_LEVEL": news_data.get("risk_level", "UNKNOWN"),
-            "RISK_ADVISORY": risk_advisory,
-            "REASONING": reasons,
-            "INPUT_SUMMARY": {
-                "structure": str_data.get("final_signal"),
-                "history": hist_data.get("historical_bias"),
-                "news_sentiment": news_data.get("sentiment_score")
+            "CONFIDENCE": conf,
+            "RISK_ADVISORY": risk,
+            "GOVERNANCE_ALERTS": alerts,
+            "REASONING": {
+                "l1_structure": str_data.get("details", {}).get("ltf_layer1", {}).get("notes"),
+                "l2_confluence": str_data.get("reasoning"),
+                "l3_history": hist_data.get("reasoning"),
+                "l4_news": news_data.get("reasoning")
             }
         }
         
+        # --- TELEGRAM INTEGRATION ---
+        # Trigger Alert if High Confidence OR Critical Risk
+        if conf >= 75:
+            msg = f"🚀 *SUPER SIGNAL ALERT* 🚀\n\n*Symbol:* {args.symbol}\n*Signal:* {action}\n*Confidence:* {conf}/100\n\n*Reasoning:*\nL1: {report['REASONING']['l1_structure']}\nL2: {report['REASONING']['l2_confluence']}\n\n*Price:* {last_p}"
+            if risk:
+                msg += f"\n\n*TP:* {risk.get('TAKE_PROFIT')}\n*SL:* {risk.get('STOP_LOSS')}"
+            send_telegram_alert(msg)
+            
+        elif news_data.get("risk_penalty", 0) >= 80:
+            msg = f"⚠️ *GOVERNANCE WARNING* ⚠️\n\n*Symbol:* {args.symbol}\n*Status:* WAIT / LOCKED\n\n*Reason:* Critical News Risk Detected.\n*Penalty:* -{news_data['risk_penalty']}\n*Headlines:* {news_data.get('flagged_keywords')}"
+            send_telegram_alert(msg)
+        # ----------------------------
+
         print(json.dumps(report, indent=2))
         
     except Exception as e:
