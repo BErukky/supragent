@@ -1,1 +1,1 @@
-web: gunicorn app:app & python execution/telegram_listener.py
+web: gunicorn app:app --workers 1 --threads 8

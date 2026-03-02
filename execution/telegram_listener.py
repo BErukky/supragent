@@ -34,7 +34,7 @@ def send_message(chat_id, text):
         print(f"Failed to send message: {e}", file=sys.stderr)
 
 def process_command(chat_id, command, args):
-    print(f"Processing command: {command} from {chat_id}")
+    print(f"Processing command: {command} from {chat_id}", file=sys.stderr)
     
     if str(chat_id) != str(ALLOWED_CHAT_ID):
         send_message(chat_id, "⛔ Authorization Failed. You are not the owner of this bot.")
@@ -120,7 +120,7 @@ def process_command(chat_id, command, args):
         send_message(chat_id, "❓ Unknown command. Try `/help`.")
 
 def main_loop():
-    print(f"Telegram Listener Online. Waiting for commands from {ALLOWED_CHAT_ID}...")
+    print(f"Telegram Listener Online. Waiting for commands from {ALLOWED_CHAT_ID}...", file=sys.stderr)
     offset = 0
     
     while True:
@@ -146,7 +146,7 @@ def main_loop():
             time.sleep(1)
             
         except Exception as e:
-            print(f"Poll Error: {e}")
+            print(f"Poll Error: {e}", file=sys.stderr)
             time.sleep(5)
 
 if __name__ == "__main__":
