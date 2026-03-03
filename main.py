@@ -9,7 +9,7 @@ def run_script(script_name, args):
     cmd = [sys.executable, f"execution/{script_name}"] + args
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
-        print(f"Error running {script_name}: {result.stderr}")
+        print(f"Error running {script_name}: {result.stderr}", file=sys.stderr)
         return None
     output = result.stdout.strip()
     if not output.startswith('{'):
@@ -19,7 +19,7 @@ def run_script(script_name, args):
     try:
         return json.loads(output)
     except json.JSONDecodeError:
-        print(f"Failed to parse JSON from {script_name}: {output}")
+        print(f"Failed to parse JSON from {script_name}: {output}", file=sys.stderr)
         return None
 
 def main():
@@ -33,16 +33,18 @@ def main():
     parser.add_argument('--json_only', action='store_true', help='Output only the final JSON report')
     args = parser.parse_args()
 
-    print(f"Running Super Signals LIVE v2.0 Analysis for {args.symbol}...")
+    if not args.json_only:
+        print(f"Running Super Signals LIVE v2.0 Analysis for {args.symbol}...")
 
     # 1. Fetch Data
-    subprocess.run([sys.executable, "execution/market_data.py", "--symbol", args.symbol, "--timeframe", args.htf, "--limit", "100"], check=False)
-    subprocess.run([sys.executable, "execution/market_data.py", "--symbol", args.symbol, "--timeframe", args.ltf, "--limit", "100"], check=False)
+    capture = args.json_only
+    subprocess.run([sys.executable, "execution/market_data.py", "--symbol", args.symbol, "--timeframe", args.htf, "--limit", "100"], capture_output=capture, check=False)
+    subprocess.run([sys.executable, "execution/market_data.py", "--symbol", args.symbol, "--timeframe", args.ltf, "--limit", "100"], capture_output=capture, check=False)
     htf_file = f".tmp/{args.symbol.replace('/', '_')}_{args.htf}.csv"
     ltf_file = f".tmp/{args.symbol.replace('/', '_')}_{args.ltf}.csv"
 
     if not os.path.exists(htf_file) or not os.path.exists(ltf_file):
-        print("Error: Could not find data files.")
+        if not args.json_only: print("Error: Could not find data files.")
         sys.exit(1)
 
     # 2. Confluence (Layer 1 & 2)
@@ -71,7 +73,7 @@ def main():
         news_json = run_script("news_engine.py", ["--text"] + news_headlines)
     else:
         # Autonomous Scrape
-        subprocess.run([sys.executable, "execution/news_scraper.py"], check=False)
+        subprocess.run([sys.executable, "execution/news_scraper.py"], capture_output=capture, check=False)
         try:
             with open(".tmp/latest_headlines.json", "r") as f: news_headlines = json.load(f)
         except: news_headlines = ["Stable market conditions"]

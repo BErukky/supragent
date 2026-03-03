@@ -148,12 +148,18 @@ def process_command(chat_id, command, args):
             )
             
             if result.returncode == 0:
+                output = result.stdout.strip()
+                # Find the JSON block starting with {
+                json_start = output.find('{')
+                if json_start != -1:
+                    output = output[json_start:]
+                
                 try:
-                    data = json.loads(result.stdout)
+                    data = json.loads(output)
                     report_msg = format_institutional_report(symbol, data)
                     send_message(chat_id, report_msg)
                 except Exception as parse_err:
-                    send_message(chat_id, f"❌ Data Parsing Error: {parse_err}")
+                    send_message(chat_id, f"❌ Data Parsing Error: {parse_err}\nRaw: `{output[:100]}...`")
             else:
                 send_message(chat_id, f"❌ Analysis Failed for {symbol}.\n`{result.stderr[:200]}`")
 
