@@ -103,9 +103,12 @@ def analyze_news_cari(news_items):
     
     # 7. 3-State Logic
     risk_state = "NORMAL"
-    if final_penalty >= 75: risk_state = "CRITICAL"
-    elif final_penalty >= 35: risk_state = "CAUTION"
-    elif final_penalty > 0 and len(domains) < 2 and SOURCES.get(news_items[0].get("source_type")) < 0.5:
+    if final_penalty >= 75: 
+        risk_state = "CRITICAL"
+    elif final_penalty >= 35: 
+        risk_state = "CAUTION"
+    elif final_penalty >= 15 and len(domains) < 2 and SOURCES.get(news_items[0].get("source_type", "AGGREGATOR"), 0.4) < 0.5:
+        # Only trigger WAIT_VERIFICATION if the penalty is significant enough (>= 15)
         risk_state = "WAIT_VERIFICATION"
 
     return {
@@ -115,7 +118,7 @@ def analyze_news_cari(news_items):
         "permits_trade": risk_state != "CRITICAL",
         "details": results,
         "layer4_score": round(max(0, 10 - (final_penalty / 10.0)), 2),
-        "reasoning": f"Risk State: {risk_state}. Consensus Domains: {len(domains)}. Multi-factor penalty applied."
+        "reasoning": f"Risk: {risk_state}. Penalty: {round(final_penalty, 1)}. Consensus: {len(domains)} (Domains: {', '.join(list(domains)[:3])})"
     }
 
 def main():

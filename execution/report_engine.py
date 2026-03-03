@@ -37,16 +37,17 @@ def aggregate_v2_confidence(str_res, hist_res, news_res):
     bias = str_res.get("final_signal", "WAIT / NO_TRADE")
     action = "WAIT / NO_TRADE"
     
+    # Adaptive Logic: Only CRITICAL and WAIT_VERIFICATION strictly block.
+    # CAUTION reduces confidence but allows the signal if it stays >= 70.
     if risk_state == "CRITICAL":
         action = "WAIT / LOCKED (CRITICAL NEWS)"
     elif risk_state == "WAIT_VERIFICATION":
         action = "WAIT / VERIFYING NEWS"
-    elif final_confidence >= 75:
+    elif final_confidence >= 70: # Slightly lower threshold for 'Opportunity'
         if "LONG" in bias: action = "LONG_BIAS"
         elif "SHORT" in bias: action = "SHORT_BIAS"
     
-    # Optional logic for CAUTION state: Allow trade but lower confidence
-    if risk_state == "CAUTION" and action != "WAIT / NO_TRADE":
+    if risk_state == "CAUTION" and "WAIT" not in action:
         action += " (CAUTION)"
         
     return round(final_confidence, 2), action
@@ -54,9 +55,8 @@ def aggregate_v2_confidence(str_res, hist_res, news_res):
 def calculate_v2_risk(action, str_data, news_penalty):
     """
     Tightens TP/SL based on news penalty.
+    Calculates levels even for WAIT signals for user context.
     """
-    if "NO_TRADE" in action or "WAIT" in action: return None
-    
     details = str_data.get("details", {})
     ltf_struct = details.get("raw_ltf_structure", [])
     if not ltf_struct: return None
@@ -65,6 +65,9 @@ def calculate_v2_risk(action, str_data, news_penalty):
     
     # Logic: More news risk = tighter TP targets (locking in profit early)
     risk_multi = 1.0 - (news_penalty / 200.0) # Reduce multi if penalty > 0
+    if "WAIT" in action or "LOCKED" in action:
+        # For WAIT signals, we still show levels but maybe keep them standard
+        risk_multi = 1.0
     
     # Find SL
     sl_price = 0.0
@@ -115,7 +118,8 @@ def main():
         with open(args.news, 'r') as f: news_data = json.load(f)
         
         conf, action = aggregate_v2_confidence(str_data, hist_data, news_data)
-        risk = calculate_v2_risk(action, str_data, news_data.get("risk_penalty", 0))
+        penalty = news_data.get("final_penalty", 0)
+        risk = calculate_v2_risk(action, str_data, penalty)
         
         # Log for feedback loop
         ltf_struct = str_data.get("details", {}).get("raw_ltf_structure", [])
@@ -124,11 +128,12 @@ def main():
         
         # Governance Alerts
         alerts = []
-        if news_data.get("risk_penalty", 0) > 0:
-            alerts.append(f"[!] NEWS: Risk Penalty {news_data['risk_penalty']} applied.")
-            if news_data.get("flagged_keywords"):
-                alerts.append(f"    Flagged: {', '.join(news_data['flagged_keywords'])}")
+        if penalty > 0:
+            alerts.append(f"[!] NEWS: Risk Penalty {penalty} applied.")
         
+        if news_data.get("risk_state") == "WAIT_VERIFICATION":
+            alerts.append("[!] GOV: Verifying news consensus (Temporary Hold).")
+
         if hist_data.get("false_positive_risk"):
             alerts.append("[!] HIST: High instability/Analogue variance detected.")
 
@@ -147,15 +152,12 @@ def main():
         }
         
         # --- TELEGRAM INTEGRATION ---
-        # Trigger Alert if High Confidence OR Critical Risk
-        if conf >= 75:
-            msg = f"🚀 *SUPER SIGNAL ALERT* 🚀\n\n*Symbol:* {args.symbol}\n*Signal:* {action}\n*Confidence:* {conf}/100\n\n*Reasoning:*\nL1: {report['REASONING']['l1_structure']}\nL2: {report['REASONING']['l2_confluence']}\n\n*Price:* {last_p}"
+        # The telegram_listener.py now handles the primary reporting.
+        # This block is only for emergency high-confidence BROADCASTS.
+        if conf >= 85 and "WAIT" not in action:
+            msg = f"🚀 *SUPER SIGNAL ALERT* 🚀\n\n*Symbol:* {args.symbol}\n*Signal:* {action}\n*Confidence:* {conf}/100\n\n*Price:* {last_p}"
             if risk:
-                msg += f"\n\n*TP:* {risk.get('TAKE_PROFIT')}\n*SL:* {risk.get('STOP_LOSS')}"
-            send_telegram_alert(msg)
-            
-        elif news_data.get("risk_penalty", 0) >= 80:
-            msg = f"⚠️ *GOVERNANCE WARNING* ⚠️\n\n*Symbol:* {args.symbol}\n*Status:* WAIT / LOCKED\n\n*Reason:* Critical News Risk Detected.\n*Penalty:* -{news_data['risk_penalty']}\n*Headlines:* {news_data.get('flagged_keywords')}"
+                msg += f"\n*TP:* {risk.get('TAKE_PROFIT')[0]}\n*SL:* {risk.get('STOP_LOSS')}"
             send_telegram_alert(msg)
         # ----------------------------
 

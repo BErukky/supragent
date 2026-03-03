@@ -35,6 +35,58 @@ def send_message(chat_id, text):
 
 import threading
 
+def format_institutional_report(symbol, data):
+    """
+    Formats the JSON report into a premium Markdown message.
+    """
+    sig = data.get("FINAL_SIGNAL", "UNKNOWN")
+    conf = data.get("CONFIDENCE", 0)
+    risk = data.get("RISK_ADVISORY", {}) or {}
+    reasons = data.get("REASONING", {})
+    alerts = data.get("GOVERNANCE_ALERTS", [])
+    timestamp = data.get("TIMESTAMP", str(datetime.now()))[:19]
+
+    # Header
+    msg = (
+        "====================================\n"
+        "=== *SUPER SIGNALS v2.0 LIVE REPORT* ===\n"
+        f"*Symbol:* {symbol} | {timestamp}\n"
+        "------------------------------------\n"
+        f"*SIGNAL:*      `{sig}` ({conf}/100 Conf)\n"
+    )
+
+    # Risk Levels (Always shown for context)
+    sl = risk.get("STOP_LOSS", "N/A")
+    tp_targets = risk.get("TAKE_PROFIT", [])
+    tp_str = " | ".join(map(str, tp_targets)) if tp_targets else "N/A"
+    
+    msg += f"*STOP LOSS:*   `{sl}`\n"
+    msg += f"*TAKE PROFIT:* `{tp_str}`\n"
+    
+    if risk.get("RISK_OFFSET"):
+        msg += f"*RISK OFFSET:* `{risk.get('RISK_OFFSET')}x`\n"
+
+    # Governance Alerts
+    if alerts:
+        msg += "\n⚠️ *GOVERNANCE ALERTS*:\n"
+        for alert in alerts:
+            msg += f" • {alert}\n"
+
+    # Layer-Wise Reasoning
+    msg += (
+        "------------------------------------\n"
+        "--- *LAYER-WISE REASONING* ---\n"
+        f"• *[L1/L2]* {reasons.get('l2_confluence')}\n"
+        f"• *[L3]*    {reasons.get('l3_history', 'Data parsing...')}\n"
+        f"• *[L4]*    {reasons.get('l4_news')}\n"
+        "====================================\n"
+    )
+
+    if "WAIT" in sig or "LOCKED" in sig:
+        msg += "\n🛑 *Bot is currently in Defensive Mode.*"
+    
+    return msg
+
 def process_command(chat_id, command, args):
     """
     Handles command execution. Now designed to be run in a separate thread.
@@ -66,20 +118,18 @@ def process_command(chat_id, command, args):
         no_news = (command == "/scan_tech")
         send_message(chat_id, f"🔍 *Starting {'Technical ' if no_news else 'Full '}Market Scan...*")
         try:
-            # We use a longer timeout for the scanner as it analyzes many assets
             cmd = [sys.executable, "execution/market_scanner.py"]
             if no_news: cmd.append("--no_news")
             
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
             
-            # Check output for "No high-confidence" message
             if "No high-confidence setups found" in result.stdout:
                 send_message(chat_id, "📉 *Scan Complete*: No actionable setups found. Market is defensive.")
             else:
-                 send_message(chat_id, "✅ *Scan Complete*. Check above for alerts.")
+                 send_message(chat_id, "✅ *Scan Complete*. Check alerts above.")
                  
         except subprocess.TimeoutExpired:
-            send_message(chat_id, "⌛ *Scan Timeout*: The market scan took too long. Check logs for partial results.")
+            send_message(chat_id, "⌛ *Scan Timeout*: The market scan took too long. Try a single `/analyze`.")
         except Exception as e:
             send_message(chat_id, f"❌ Scan Error: {str(e)}")
 
@@ -93,27 +143,22 @@ def process_command(chat_id, command, args):
         
         try:
             result = subprocess.run(
-                [sys.executable, "main.py", "--symbol", symbol],
+                [sys.executable, "main.py", "--symbol", symbol, "--json_only"],
                 capture_output=True, text=True, timeout=180
             )
             
-            output = result.stdout
             if result.returncode == 0:
-                signal = "UNKNOWN"
-                for line in output.split("\n"):
-                    if "SIGNAL:" in line:
-                        signal = line.split("SIGNAL:", 1)[1].strip()
-                
-                is_wait = "WAIT" in signal
-                msg = f"📊 *Report for {symbol}*\n\n*Signal:* {signal}\n\nAnalysis complete."
-                if is_wait:
-                     msg += "\n⚠️ *Governance Active*: Trade blocked due to risk/structure."
-                send_message(chat_id, msg)
+                try:
+                    data = json.loads(result.stdout)
+                    report_msg = format_institutional_report(symbol, data)
+                    send_message(chat_id, report_msg)
+                except Exception as parse_err:
+                    send_message(chat_id, f"❌ Data Parsing Error: {parse_err}")
             else:
                 send_message(chat_id, f"❌ Analysis Failed for {symbol}.\n`{result.stderr[:200]}`")
 
         except subprocess.TimeoutExpired:
-            send_message(chat_id, f"⌛ *Analysis Timeout*: {symbol} analysis exceeded 3 minutes. This usually happens when the server is overwhelmed. Please try again in a moment.")
+            send_message(chat_id, f"⌛ *Analysis Timeout*: {symbol} analysis took too long.")
         except Exception as e:
              send_message(chat_id, f"❌ Execution Error: {str(e)}")
 

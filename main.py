@@ -30,6 +30,7 @@ def main():
     parser.add_argument('--use_mock', action='store_true', help='Force use of mock data')
     parser.add_argument('--news', type=str, nargs='+', help='Custom news headlines')
     parser.add_argument('--no_news', action='store_true', help='Skip news analysis for pure technical focus')
+    parser.add_argument('--json_only', action='store_true', help='Output only the final JSON report')
     args = parser.parse_args()
 
     print(f"Running Super Signals LIVE v2.0 Analysis for {args.symbol}...")
@@ -89,10 +90,14 @@ def main():
     
     if not final_report: sys.exit(1)
 
+    if args.json_only:
+        print(json.dumps(final_report))
+        return
+
     # --- PRINT 2.0 OUTPUT ---
     sig = final_report.get("FINAL_SIGNAL")
     conf = final_report.get("CONFIDENCE")
-    risk = final_report.get("RISK_ADVISORY", {})
+    risk = final_report.get("RISK_ADVISORY", {}) or {}
     reasons = final_report.get("REASONING", {})
     alerts = final_report.get("GOVERNANCE_ALERTS", [])
     
@@ -107,7 +112,7 @@ def main():
         for alert in alerts:
             print(f"     {alert}")
     
-    if risk:
+    if risk and risk.get("STOP_LOSS"):
         print(f" STOP LOSS:   {risk.get('STOP_LOSS')}")
         print(f" TAKE PROFIT: {' | '.join(map(str, risk.get('TAKE_PROFIT', [])))}")
         print(f" RISK OFFSET: {risk.get('RISK_OFFSET')}x (Tightened for safety)")
