@@ -523,5 +523,12 @@
     "action": "WAIT / NO_TRADE",
     "confidence": 0,
     "entry_price": 65309.109375
+  },
+  {
+    "timestamp": "2026-03-03 10:33:09.335819",
+    "symbol": "BTC/USD",
+    "action": "WAIT / VERIFYING NEWS",
+    "confidence": 41.16,
+    "entry_price": 68248.921875
   }
 ]

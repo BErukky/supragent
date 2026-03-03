@@ -27,11 +27,17 @@ Super Signals operates on a 5-layer system designed for maximum objectivity.
 - **Upgrade**: **Probabilistic Matching**. Returns a percentage probability based on historical Euclidean distance analogs.
 - **Learning**: Tracks recurring false positives in matching (Lowers confidence if a "fake" analog is detected).
 
-### Layer 4: News & Narrative
+### Layer 4: Context-Aware Risk Intelligence (CARI)
 
-- **Purpose**: Environmental permission.
-- **Upgrade**: **Reaction Assimilation**. Numeric penalties for "contradictory events" (e.g., high-risk hacks during a breakout). Penalizes confidence by fixed weights (-20 to -100).
-- **Governance**: Auto-suppress to WAIT if impact > 80 penalty.
+- **Purpose**: Autonomous risk environment permission.
+- **Verification Pillars**:
+  1. **Source Reliability**: Weighted trust (Official/Tier 1 vs. Aggregators/Bots).
+  2. **Event Scope**: Differentiating Protocol, Infrastructure, and Application risk.
+  3. **Market Reaction**: Verification of price/volatility reaction to confirm impact.
+  4. **Temporal Decay**: Risk diminishes exponentially over time (ghost-lock prevention).
+  5. **Consensus Engine**: Cross-verification from independent domains increases penalty certainty.
+- **Logic**: Final Risk Penalty = Base _ Trust _ Scope _ Decay _ Consensus.
+- **Governance**: 3-State Logic: NORMAL (Trade), CAUTION (Tighter TP/SL), CRITICAL (Mandatory WAIT).
 
 ### Layer 5: Probability & Risk Governance
 

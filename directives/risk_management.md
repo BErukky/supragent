@@ -24,14 +24,11 @@ Enhance the final report with specific Take Profit (TP) and Stop Loss (SL) price
     - **LONG**: Find the most recent _Swing High_ above current price. If none, project a 1.5R distance.
     - **SHORT**: Find the most recent _Swing Low_ below current price. If none, project a 1.5R distance.
 
+## Governance States
+
+1. **NORMAL**: No critical risks. Full execution based on structure.
+2. **CAUTION**: Medium-risk/Unconfirmed alerts. Tighten SL/TP.
+3. **WAIT_VERIFICATION**: Temporary state (30-90m) for unconfirmed low-trust signals. System holds while seeking consensus.
+4. **CRITICAL / LOCKED**: Mandatory wait. No trades permitted until risk resolved or decays.
+
 ## Outputs
-
-Added to Final Report JSON:
-
-```json
-"RISK_ADVISORY": {
-  "STOP_LOSS": 42100.0,
-  "TP_TARGETS": [43500.0, 44200.0],
-  "RISK_REWARD_RATIO": 2.5
-}
-```

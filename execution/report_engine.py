@@ -9,7 +9,7 @@ def aggregate_v2_confidence(str_res, hist_res, news_res):
     """
     Super Signals 2.0 Aggregation Model:
     Final Score = (L1 * 0.4) + (L2 * 0.3) + (L3 * 0.2) + (L4 * 0.1)
-    Then minus News Penalties.
+    Then minus News Penalties (with structural dampening).
     """
     # Extract granular scores
     l1_score = str_res.get("details", {}).get("ltf_layer1", {}).get("layer1_score", 0)
@@ -18,25 +18,36 @@ def aggregate_v2_confidence(str_res, hist_res, news_res):
     l4_score = news_res.get("layer4_score", 0)
     
     # Scale each to 0-100 base for calculation
-    # L1 Max 30, L2 Max 30, L3 Max 20, L4 Max 10. Total Max = 90 + base offset 10 = 100
     base_confidence = 10.0 + l1_score + l2_score + l3_score + l4_score
     
-    # Apply Governance Penalties from News (Layer 4)
-    penalty = news_res.get("risk_penalty", 0)
+    # Apply Governance Penalties from News (CARI)
+    penalty = news_res.get("final_penalty", 0)
+    risk_state = news_res.get("risk_state", "NORMAL")
+    
+    # --- Structural Dampening (Refinement 4) ---
+    # Strong structural alignment dampens weak news.
+    # L1 Max is 30, so >24 is 80%. L2 Max is 30, so >25.5 is 85%.
+    if l1_score > 24 and l2_score > 25.5:
+        penalty *= 0.7
+        news_res["dampening_applied"] = True
+
     final_confidence = max(0, base_confidence - penalty)
     
-    # Determine Action
+    # Determine Action based on 3-State Logic
     bias = str_res.get("final_signal", "WAIT / NO_TRADE")
     action = "WAIT / NO_TRADE"
     
-    # Governance: Selective Action
-    if final_confidence >= 75:
+    if risk_state == "CRITICAL":
+        action = "WAIT / LOCKED (CRITICAL NEWS)"
+    elif risk_state == "WAIT_VERIFICATION":
+        action = "WAIT / VERIFYING NEWS"
+    elif final_confidence >= 75:
         if "LONG" in bias: action = "LONG_BIAS"
         elif "SHORT" in bias: action = "SHORT_BIAS"
     
-    # If News is Critical, force Wait
-    if not news_res.get("permits_trade", True):
-        action = "WAIT / NO_TRADE"
+    # Optional logic for CAUTION state: Allow trade but lower confidence
+    if risk_state == "CAUTION" and action != "WAIT / NO_TRADE":
+        action += " (CAUTION)"
         
     return round(final_confidence, 2), action
 

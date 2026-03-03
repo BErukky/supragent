@@ -1,92 +1,155 @@
 import argparse
 import json
 import sys
+import math
+from datetime import datetime, timedelta
 
-# Simple internal database of keywords with historical reaction scores
-# Score = Emotional Sentiment | Penalty = System Risk Overlay
-KEYWORDS = {
-    "CRITICAL_RISK": {
-        "hack": {"score": -20, "penalty": 100},
-        "insolvent": {"score": -20, "penalty": 100},
-        "bankruptcy": {"score": -20, "penalty": 100},
-        "sec lawsuit": {"score": -10, "penalty": 60},
-        "crypto ban": {"score": -15, "penalty": 100},
-        "trading halt": {"score": -10, "penalty": 80},
-        "exploit": {"score": -15, "penalty": 90}
-    },
-    "NEGATIVE": {
-        "inflation": {"score": -5, "penalty": 20},
-        "rate hike": {"score": -5, "penalty": 30},
-        "market dump": {"score": -5, "penalty": 30},
-        "liquidation": {"score": -4, "penalty": 25},
-        "bearish": {"score": -3, "penalty": 10}
-    },
-    "POSITIVE": {
-        "etf approval": {"score": 15, "penalty": 0},
-        "partnership": {"score": 5, "penalty": 0},
-        "adoption": {"score": 5, "penalty": 0},
-        "bullish": {"score": 5, "penalty": 0},
-        "all time high": {"score": 8, "penalty": 0},
-        "breakout": {"score": 5, "penalty": 0}
-    }
+# CARI: Context-Aware Risk Intelligence
+# Source Reliability Weights
+SOURCES = {
+    "OFFICIAL": 1.0,     # @Ethereum, @SolanaConf, etc.
+    "TIER_1": 0.8,       # Bloomberg, Blockworks, Reuters
+    "AGGREGATOR": 0.4,   # CryptoPanic, NewsBots
+    "SIGNAL_BOT": 0.1    # Unverified private signal bots
 }
 
-def analyze_news_v2(headlines):
-    total_sentiment = 0
-    total_penalty = 0
-    flagged = []
+# Scope Intelligence Weights
+SCOPE_WEIGHTS = {
+    "protocol": 1.0,     # Layer 1/2 chain halt, consensus bug
+    "infrastructure": 0.7, # Bridges, RPC providers, Wallets
+    "application": 0.3,   # dApp exploit (UniSwap, Aave), phishing
+    "unknown": 0.5
+}
+
+# Base Risk Keywords
+KEYWORDS = {
+    "CRITICAL": ["hack", "exploit", "halt", "locked", "insolvent", "bankruptcy", "vulnerability"],
+    "NEGATIVE": ["inflation", "lawsuit", "dump", "bearish", "ban"],
+    "POSITIVE": ["etf", "partnership", "adoption", "bullish", "ath", "breakout"]
+}
+
+def classify_scope(headline):
+    headline = headline.lower()
+    # Protocol level triggers
+    if any(x in headline for x in ["mainnet", "chain", "consensus", "validator", "halting", "fork"]):
+        return "protocol"
+    # Infrastructure triggers
+    if any(x in headline for x in ["bridge", "rpc", "wallet", "ledger", "metamask", "custody"]):
+        return "infrastructure"
+    # Application triggers
+    if any(x in headline for x in ["dapp", "dex", "swap", "protocol", "dao", "yield"]):
+        # Note: "protocol" can be ambiguous, default to application if it looks like a dApp
+        if any(x in headline for x in ["hack", "exploit"]): return "application"
+    return "unknown"
+
+def calculate_decay(news_time_str, lam=0.1):
+    try:
+        news_time = datetime.fromisoformat(news_time_str)
+        now = datetime.now()
+        hours_passed = (now - news_time).total_seconds() / 3600.0
+        return math.exp(-lam * hours_passed)
+    except:
+        return 1.0 # No decay if timestamp missing
+
+def analyze_news_cari(news_items):
+    """
+    CARI Analysis:
+    FinalPenalty = BasePenalty * SourceTrust * ScopeWeight * Decay * Consensus
+    """
+    results = []
+    total_weighted_penalty = 0
+    domains = set()
+
+    for item in news_items:
+        headline = item.get("text", "").lower()
+        source_type = item.get("source_type", "AGGREGATOR")
+        source_domain = item.get("domain", "unknown.com")
+        news_time = item.get("timestamp", str(datetime.now()))
+        
+        # 1. Base Penalty Detection
+        base_penalty = 0
+        if any(w in headline for w in KEYWORDS["CRITICAL"]): base_penalty = 90
+        elif any(w in headline for w in KEYWORDS["NEGATIVE"]): base_penalty = 30
+        
+        if base_penalty == 0: continue
+
+        # 2. Source Trust
+        trust = SOURCES.get(source_type, 0.4)
+        
+        # 3. Scope Intelligence
+        scope = classify_scope(headline)
+        scope_weight = SCOPE_WEIGHTS.get(scope, 0.5)
+        
+        # 4. Temporal Decay
+        decay = calculate_decay(news_time)
+        
+        # 5. Independent Domain Logging
+        domains.add(source_domain)
+        
+        # Item Penalty
+        item_penalty = base_penalty * trust * scope_weight * decay
+        total_weighted_penalty += item_penalty
+        
+        results.append({
+            "headline": headline[:50] + "...",
+            "scope": scope,
+            "impact": round(item_penalty, 2),
+            "decay": round(decay, 2)
+        })
+
+    # 6. Consensus Bonus (Boost based on independent domains)
+    consensus_bonus = min(0.5, 0.15 * (len(domains) - 1)) if len(domains) > 1 else 0
+    final_penalty = total_weighted_penalty * (1 + consensus_bonus)
     
-    queries = [h.lower() for h in headlines]
-    
-    for headline in queries:
-        for category, words in KEYWORDS.items():
-            for word, config in words.items():
-                if word in headline:
-                    total_sentiment += config['score']
-                    total_penalty += config['penalty']
-                    flagged.append(word)
-                    
-    # Clamp penalty
-    total_penalty = min(100, total_penalty)
-    
-    # Determine Risk Level
-    risk_level = "LOW"
-    if total_penalty >= 80: risk_level = "CRITICAL"
-    elif total_penalty >= 40: risk_level = "HIGH"
-    elif total_penalty >= 20: risk_level = "MEDIUM"
-    
-    # Layer 4 score starts at 10 (Neutral) and moves by sentiment
-    # Governance will use 'penalty' to subtract from total confidence
-    l4_score = round(max(0, min(10, 5 + (total_sentiment / 2.0))), 2)
+    # 7. 3-State Logic
+    risk_state = "NORMAL"
+    if final_penalty >= 75: risk_state = "CRITICAL"
+    elif final_penalty >= 35: risk_state = "CAUTION"
+    elif final_penalty > 0 and len(domains) < 2 and SOURCES.get(news_items[0].get("source_type")) < 0.5:
+        risk_state = "WAIT_VERIFICATION"
 
     return {
-        "risk_level": risk_level,
-        "sentiment_score": round(float(total_sentiment), 2),
-        "risk_penalty": int(total_penalty),
-        "permits_trade": total_penalty < 80,
-        "layer4_score": l4_score,
-        "flagged_keywords": list(set(flagged)),
-        "reasoning": f"Sentiment: {total_sentiment}. Risk Penalty: {total_penalty}. Level: {risk_level}"
+        "risk_state": risk_state,
+        "final_penalty": round(min(100, final_penalty), 2),
+        "consensus_count": len(domains),
+        "permits_trade": risk_state != "CRITICAL",
+        "details": results,
+        "layer4_score": round(max(0, 10 - (final_penalty / 10.0)), 2),
+        "reasoning": f"Risk State: {risk_state}. Consensus Domains: {len(domains)}. Multi-factor penalty applied."
     }
 
 def main():
-    parser = argparse.ArgumentParser(description='Analyze News Risk v2.')
-    parser.add_argument('--input', type=str, help='Path to JSON file with headlines list')
-    parser.add_argument('--text', type=str, nargs='+', help='Direct headline input')
+    parser = argparse.ArgumentParser(description='CARI News Engine.')
+    parser.add_argument('--input', type=str, help='JSON file with news items [{text, source_type, domain, timestamp}]')
+    parser.add_argument('--text', type=str, nargs='+', help='Direct headline input (Legacy/Technical)')
     args = parser.parse_args()
     
-    headlines = []
-    try:
-        if args.input:
+    news_items = []
+    
+    if args.input:
+        try:
             with open(args.input, 'r') as f:
-                data = json.load(f)
-                headlines = data if isinstance(data, list) else data.get("headlines", [])
-        if args.text: headlines.extend(args.text)
-        if not headlines:
-            print(json.dumps({"error": "No headlines provided"}))
+                news_items = json.load(f)
+        except Exception as e:
+            print(json.dumps({"error": f"Failed to load input file: {e}"}))
             sys.exit(1)
+    
+    if args.text:
+        # Convert raw text to structured CARI format with default/safe values
+        for txt in args.text:
+            news_items.append({
+                "text": txt,
+                "source_type": "AGGREGATOR",
+                "domain": "passed_text",
+                "timestamp": str(datetime.now())
+            })
             
-        result = analyze_news_v2(headlines)
+    if not news_items:
+        print(json.dumps({"error": "No news items provided"}))
+        sys.exit(1)
+        
+    try:
+        result = analyze_news_cari(news_items)
         print(json.dumps(result, indent=2))
     except Exception as e:
         print(json.dumps({"error": str(e)}))
