@@ -22,7 +22,24 @@ def fetch_headlines():
                 print(f"Warning: Failed to fetch {url} (Status {response.status_code})")
                 continue
             
-            root = ET.fromstring(response.content)
+            # Use content and try to fix encoding issues
+            content = response.content
+            try:
+                root = ET.fromstring(content)
+            except ET.ParseError:
+                # Fallback: simple regex-based extraction if XML is broken
+                import re
+                titles = re.findall(r'<title>(.*?)</title>', response.text)
+                for t in titles:
+                    if t and "CryptoPanic" not in t:
+                        structured_news.append({
+                            "text": t.strip(),
+                            "source_type": config["type"],
+                            "domain": config["domain"],
+                            "timestamp": str(datetime.now())
+                        })
+                continue # Skip standard parsing if we used regex fallback
+
             for item in root.findall(".//item"):
                 title = item.find("title")
                 pub_date = item.find("pubDate")

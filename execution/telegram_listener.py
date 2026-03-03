@@ -33,8 +33,19 @@ def send_message(chat_id, text):
     except Exception as e:
         print(f"Failed to send message: {e}", file=sys.stderr)
 
+import threading
+
 def process_command(chat_id, command, args):
+    """
+    Handles command execution. Now designed to be run in a separate thread.
+    """
     print(f"Processing command: {command} from {chat_id}", file=sys.stderr)
+    
+    # Normalize command (Handle cases like /analyzeBTC/USD)
+    cmd_clean = command.lower()
+    if "/analyze" in cmd_clean and len(cmd_clean) > 8:
+        args = [command[8:]] + args
+        command = "/analyze"
     
     if str(chat_id) != str(ALLOWED_CHAT_ID):
         send_message(chat_id, "⛔ Authorization Failed. You are not the owner of this bot.")
@@ -55,10 +66,11 @@ def process_command(chat_id, command, args):
         no_news = (command == "/scan_tech")
         send_message(chat_id, f"🔍 *Starting {'Technical ' if no_news else 'Full '}Market Scan...*")
         try:
+            # We use a longer timeout for the scanner as it analyzes many assets
             cmd = [sys.executable, "execution/market_scanner.py"]
             if no_news: cmd.append("--no_news")
             
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
             
             # Check output for "No high-confidence" message
             if "No high-confidence setups found" in result.stdout:
@@ -66,6 +78,8 @@ def process_command(chat_id, command, args):
             else:
                  send_message(chat_id, "✅ *Scan Complete*. Check above for alerts.")
                  
+        except subprocess.TimeoutExpired:
+            send_message(chat_id, "⌛ *Scan Timeout*: The market scan took too long. Check logs for partial results.")
         except Exception as e:
             send_message(chat_id, f"❌ Scan Error: {str(e)}")
 
@@ -74,44 +88,32 @@ def process_command(chat_id, command, args):
             send_message(chat_id, "⚠️ Usage: `/analyze SYMBOL` (e.g. `/analyze BTC/USD`)")
             return
             
-        symbol = args[0].upper()
+        symbol = args[0].upper().replace(" ", "")
         send_message(chat_id, f"🔬 *Analyzing {symbol}...*")
         
         try:
-            # Run main.py for single symbol
-            # We need to parse the JSON output from report_engine if main.py prints it
-            # But main.py output format is designed for console reading.
-            # Let's run it and capture the summary.
-            
             result = subprocess.run(
                 [sys.executable, "main.py", "--symbol", symbol],
-                capture_output=True, text=True
+                capture_output=True, text=True, timeout=60
             )
             
             output = result.stdout
-            
-            # Extract key info if possible, or just send a summary based on exit code
             if result.returncode == 0:
-                # Naive parsing for "SIGNAL:" line
                 signal = "UNKNOWN"
-                conf = "0"
                 for line in output.split("\n"):
                     if "SIGNAL:" in line:
                         signal = line.split("SIGNAL:", 1)[1].strip()
-                    if "Confidence:" in line: # From report text
-                         conf = line.split("Confidence:", 1)[1].strip()
                 
-                # Check for Governance Warnings structure in stdout
                 is_wait = "WAIT" in signal
-                
-                msg = f"📊 *Report for {symbol}*\n\n*Signal:* {signal}\n\nCheck console logs for details."
+                msg = f"📊 *Report for {symbol}*\n\n*Signal:* {signal}\n\nCheck logs for full reasoning."
                 if is_wait:
                      msg += "\n⚠️ *Governance Active*: Trade blocked due to risk/structure."
-                     
                 send_message(chat_id, msg)
             else:
-                send_message(chat_id, f"❌ Analysis Failed. Check logs.\n`{result.stderr[:100]}`")
+                send_message(chat_id, f"❌ Analysis Failed.\n`{result.stderr[:200]}`")
 
+        except subprocess.TimeoutExpired:
+            send_message(chat_id, f"⌛ *Analysis Timeout*: {symbol} analysis took too long.")
         except Exception as e:
              send_message(chat_id, f"❌ Execution Error: {str(e)}")
 
@@ -140,7 +142,8 @@ def main_loop():
                             parts = text.split()
                             command = parts[0]
                             args = parts[1:]
-                            process_command(chat_id, command, args)
+                            # Run processing in a separate thread to keep the poll loop alive
+                            threading.Thread(target=process_command, args=(chat_id, command, args), daemon=True).start()
                             
             time.sleep(1)
             
