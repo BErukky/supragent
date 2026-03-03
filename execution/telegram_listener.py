@@ -94,7 +94,7 @@ def process_command(chat_id, command, args):
         try:
             result = subprocess.run(
                 [sys.executable, "main.py", "--symbol", symbol],
-                capture_output=True, text=True, timeout=60
+                capture_output=True, text=True, timeout=180
             )
             
             output = result.stdout
@@ -105,15 +105,15 @@ def process_command(chat_id, command, args):
                         signal = line.split("SIGNAL:", 1)[1].strip()
                 
                 is_wait = "WAIT" in signal
-                msg = f"📊 *Report for {symbol}*\n\n*Signal:* {signal}\n\nCheck logs for full reasoning."
+                msg = f"📊 *Report for {symbol}*\n\n*Signal:* {signal}\n\nAnalysis complete."
                 if is_wait:
                      msg += "\n⚠️ *Governance Active*: Trade blocked due to risk/structure."
                 send_message(chat_id, msg)
             else:
-                send_message(chat_id, f"❌ Analysis Failed.\n`{result.stderr[:200]}`")
+                send_message(chat_id, f"❌ Analysis Failed for {symbol}.\n`{result.stderr[:200]}`")
 
         except subprocess.TimeoutExpired:
-            send_message(chat_id, f"⌛ *Analysis Timeout*: {symbol} analysis took too long.")
+            send_message(chat_id, f"⌛ *Analysis Timeout*: {symbol} analysis exceeded 3 minutes. This usually happens when the server is overwhelmed. Please try again in a moment.")
         except Exception as e:
              send_message(chat_id, f"❌ Execution Error: {str(e)}")
 
@@ -127,7 +127,7 @@ def main_loop():
     while True:
         try:
             url = f"{BASE_URL}/getUpdates?timeout=30&offset={offset}"
-            resp = requests.get(url, timeout=35)
+            resp = requests.get(url, timeout=45)
             data = resp.json()
             
             if data.get("ok"):
