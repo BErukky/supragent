@@ -1,3 +1,11 @@
+import requests
+import time
+import os
+import sys
+import json
+import threading
+from datetime import datetime
+
 # Ensure we can import from the parent directory (root)
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 try:
@@ -7,6 +15,26 @@ except ImportError:
     # Fallback to direct imports if run from root
     from main import run_full_analysis
     import execution.market_scanner as market_scanner
+
+# Setup Environment
+def load_env():
+    env_path = ".env"
+    if os.path.exists(env_path):
+        with open(env_path, "r") as f:
+            for line in f:
+                if "=" in line:
+                    key, value = line.strip().split("=", 1)
+                    os.environ[key] = value
+
+load_env()
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+ALLOWED_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+if not BOT_TOKEN:
+    print("Error: Missing TELEGRAM_BOT_TOKEN in .env")
+    sys.exit(1)
+
+BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 def send_message(chat_id, text):
     # Truncate if too long for Telegram (4096 chars)
@@ -19,6 +47,58 @@ def send_message(chat_id, text):
         requests.post(url, json=payload, timeout=5)
     except Exception as e:
         print(f"Failed to send message: {e}", file=sys.stderr)
+
+def format_institutional_report(symbol, data):
+    """
+    Formats the JSON report into a premium Markdown message.
+    """
+    sig = data.get("FINAL_SIGNAL", "UNKNOWN")
+    conf = data.get("CONFIDENCE", 0)
+    risk = data.get("RISK_ADVISORY", {}) or {}
+    reasons = data.get("REASONING", {})
+    alerts = data.get("GOVERNANCE_ALERTS", [])
+    timestamp = data.get("TIMESTAMP", str(datetime.now()))[:19]
+
+    # Header
+    msg = (
+        "====================================\n"
+        "=== *SUPER SIGNALS v2.0 LIVE REPORT* ===\n"
+        f"*Symbol:* {symbol} | {timestamp}\n"
+        "------------------------------------\n"
+        f"*SIGNAL:*      `{sig}` ({conf}/100 Conf)\n"
+    )
+
+    # Risk Levels (Always shown for context)
+    sl = risk.get("STOP_LOSS", "N/A")
+    tp_targets = risk.get("TAKE_PROFIT", [])
+    tp_str = " | ".join(map(str, tp_targets)) if tp_targets else "N/A"
+    
+    msg += f"*STOP LOSS:*   `{sl}`\n"
+    msg += f"*TAKE PROFIT:* `{tp_str}`\n"
+    
+    if risk.get("RISK_OFFSET"):
+        msg += f"*RISK OFFSET:* `{risk.get('RISK_OFFSET')}x`\n"
+
+    # Governance Alerts
+    if alerts:
+        msg += "\n⚠️ *GOVERNANCE ALERTS*:\n"
+        for alert in alerts:
+            msg += f" • {alert}\n"
+
+    # Layer-Wise Reasoning
+    msg += (
+        "------------------------------------\n"
+        "--- *LAYER-WISE REASONING* ---\n"
+        f"• *[L1/L2]* {reasons.get('l2_confluence')}\n"
+        f"• *[L3]*    {reasons.get('l3_history', 'Data parsing...')}\n"
+        f"• *[L4]*    {reasons.get('l4_news')}\n"
+        "====================================\n"
+    )
+
+    if "WAIT" in sig or "LOCKED" in sig:
+        msg += "\n🛑 *Bot is currently in Defensive Mode.*"
+    
+    return msg
 
 def process_command(chat_id, command, args):
     """
