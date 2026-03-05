@@ -66,7 +66,10 @@ def fetch_headlines():
             
     return structured_news[:20]
 
-if __name__ == "__main__":
+def run_scraper():
+    """
+    Direct functional entry point for the orchestrator.
+    """
     latest_news = fetch_headlines()
     if not latest_news:
         latest_news = [{
@@ -77,12 +80,14 @@ if __name__ == "__main__":
         }]
         
     os.makedirs(".tmp", exist_ok=True)
-    # Save the structured version
     with open(".tmp/latest_news_structured.json", "w") as f:
         json.dump(latest_news, f, indent=2)
         
-    # Maintain backwards compatibility for existing latest_headlines.json (list of strings)
     with open(".tmp/latest_headlines.json", "w") as f:
         json.dump([item["text"] for item in latest_news], f, indent=2)
         
-    print(f"Success: {len(latest_news)} structured headlines scraped to 2026 context.")
+    return latest_news
+
+if __name__ == "__main__":
+    results = run_scraper()
+    print(f"Success: {len(results)} structured headlines scraped to 2026 context.")

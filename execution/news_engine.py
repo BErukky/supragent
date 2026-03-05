@@ -121,6 +121,17 @@ def analyze_news_cari(news_items):
         "reasoning": f"Risk: {risk_state}. Penalty: {round(final_penalty, 1)}. Consensus: {len(domains)} (Domains: {', '.join(list(domains)[:3])})"
     }
 
+def run_news_analysis(news_items):
+    """
+    Direct functional entry point for the orchestrator.
+    """
+    try:
+        if not news_items:
+            return {"error": "No news items provided"}
+        return analyze_news_cari(news_items)
+    except Exception as e:
+        return {"error": str(e)}
+
 def main():
     parser = argparse.ArgumentParser(description='CARI News Engine.')
     parser.add_argument('--input', type=str, help='JSON file with news items [{text, source_type, domain, timestamp}]')
@@ -147,16 +158,12 @@ def main():
                 "timestamp": str(datetime.now())
             })
             
-    if not news_items:
-        print(json.dumps({"error": "No news items provided"}))
+    result = run_news_analysis(news_items)
+    if "error" in result:
+        print(json.dumps(result))
         sys.exit(1)
-        
-    try:
-        result = analyze_news_cari(news_items)
+    else:
         print(json.dumps(result, indent=2))
-    except Exception as e:
-        print(json.dumps({"error": str(e)}))
-        sys.exit(1)
 
 if __name__ == "__main__":
     main()

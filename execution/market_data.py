@@ -69,7 +69,7 @@ def fetch_data(symbol, timeframe, limit):
             print(f"FATAL: All live data sources failed. Error: {e2}")
             sys.exit(1)
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description='Fetch OHLCV market data.')
     parser.add_argument('--symbol', type=str, default='BTC/USD', help='Trading symbol')
     parser.add_argument('--timeframe', type=str, default='1h', help='Timeframe')
@@ -77,3 +77,6 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     fetch_data(args.symbol, args.timeframe, args.limit)
+
+if __name__ == "__main__":
+    main()

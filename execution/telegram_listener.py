@@ -1,32 +1,18 @@
-import requests
-import time
-import os
-import sys
-import subprocess
-import json
-from datetime import datetime
-
-# Setup Environment
-def load_env():
-    env_path = ".env"
-    if os.path.exists(env_path):
-        with open(env_path, "r") as f:
-            for line in f:
-                if "=" in line:
-                    key, value = line.strip().split("=", 1)
-                    os.environ[key] = value
-
-load_env()
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-ALLOWED_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-
-if not BOT_TOKEN:
-    print("Error: Missing TELEGRAM_BOT_TOKEN in .env")
-    sys.exit(1)
-
-BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
+# Ensure we can import from the parent directory (root)
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+try:
+    from main import run_full_analysis
+    import market_scanner
+except ImportError:
+    # Fallback to direct imports if run from root
+    from main import run_full_analysis
+    import execution.market_scanner as market_scanner
 
 def send_message(chat_id, text):
+    # Truncate if too long for Telegram (4096 chars)
+    if len(text) > 4000:
+        text = text[:3900] + "\n... (Report Truncated)"
+        
     url = f"{BASE_URL}/sendMessage"
     payload = {"chat_id": chat_id, "text": text, "parse_mode": "Markdown"}
     try:
@@ -34,67 +20,12 @@ def send_message(chat_id, text):
     except Exception as e:
         print(f"Failed to send message: {e}", file=sys.stderr)
 
-import threading
-
-def format_institutional_report(symbol, data):
-    """
-    Formats the JSON report into a premium Markdown message.
-    """
-    sig = data.get("FINAL_SIGNAL", "UNKNOWN")
-    conf = data.get("CONFIDENCE", 0)
-    risk = data.get("RISK_ADVISORY", {}) or {}
-    reasons = data.get("REASONING", {})
-    alerts = data.get("GOVERNANCE_ALERTS", [])
-    timestamp = data.get("TIMESTAMP", str(datetime.now()))[:19]
-
-    # Header
-    msg = (
-        "====================================\n"
-        "=== *SUPER SIGNALS v2.0 LIVE REPORT* ===\n"
-        f"*Symbol:* {symbol} | {timestamp}\n"
-        "------------------------------------\n"
-        f"*SIGNAL:*      `{sig}` ({conf}/100 Conf)\n"
-    )
-
-    # Risk Levels (Always shown for context)
-    sl = risk.get("STOP_LOSS", "N/A")
-    tp_targets = risk.get("TAKE_PROFIT", [])
-    tp_str = " | ".join(map(str, tp_targets)) if tp_targets else "N/A"
-    
-    msg += f"*STOP LOSS:*   `{sl}`\n"
-    msg += f"*TAKE PROFIT:* `{tp_str}`\n"
-    
-    if risk.get("RISK_OFFSET"):
-        msg += f"*RISK OFFSET:* `{risk.get('RISK_OFFSET')}x`\n"
-
-    # Governance Alerts
-    if alerts:
-        msg += "\n⚠️ *GOVERNANCE ALERTS*:\n"
-        for alert in alerts:
-            msg += f" • {alert}\n"
-
-    # Layer-Wise Reasoning
-    msg += (
-        "------------------------------------\n"
-        "--- *LAYER-WISE REASONING* ---\n"
-        f"• *[L1/L2]* {reasons.get('l2_confluence')}\n"
-        f"• *[L3]*    {reasons.get('l3_history', 'Data parsing...')}\n"
-        f"• *[L4]*    {reasons.get('l4_news')}\n"
-        "====================================\n"
-    )
-
-    if "WAIT" in sig or "LOCKED" in sig:
-        msg += "\n🛑 *Bot is currently in Defensive Mode.*"
-    
-    return msg
-
 def process_command(chat_id, command, args):
     """
-    Handles command execution. Now designed to be run in a separate thread.
+    Handles command execution via direct function calls.
     """
     print(f"Processing command: {command} from {chat_id}", file=sys.stderr)
     
-    # Normalize command (Handle cases like /analyzeBTC/USD)
     cmd_clean = command.lower()
     if "/analyze" in cmd_clean and len(cmd_clean) > 8:
         args = [command[8:]] + args
@@ -118,19 +49,18 @@ def process_command(chat_id, command, args):
     elif command == "/scan" or command == "/scan_tech":
         no_news = (command == "/scan_tech")
         send_message(chat_id, f"🔍 *Starting {'Technical ' if no_news else 'Full '}Market Scan...*")
+        
+        # Call market_scanner directly in a thread-safe way (it handles its own Telegram updates)
         try:
-            cmd = [sys.executable, "execution/market_scanner.py"]
-            if no_news: cmd.append("--no_news")
+            # We mock sys.argv for the scanner parser
+            old_argv = sys.argv
+            sys.argv = ["market_scanner.py"]
+            if no_news: sys.argv.append("--no_news")
             
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            market_scanner.main()
             
-            if "No high-confidence setups found" in result.stdout:
-                send_message(chat_id, "📉 *Scan Complete*: No actionable setups found. Market is defensive.")
-            else:
-                 send_message(chat_id, "✅ *Scan Complete*. Check alerts above.")
-                 
-        except subprocess.TimeoutExpired:
-            send_message(chat_id, "⌛ *Scan Timeout*: The market scan took too long. Try a single `/analyze`.")
+            sys.argv = old_argv
+            send_message(chat_id, "✅ *Scan Complete*. All alerts sent.")
         except Exception as e:
             send_message(chat_id, f"❌ Scan Error: {str(e)}")
 
@@ -143,29 +73,15 @@ def process_command(chat_id, command, args):
         send_message(chat_id, f"🔬 *Analyzing {symbol}...*")
         
         try:
-            result = subprocess.run(
-                [sys.executable, "main.py", "--symbol", symbol, "--json_only"],
-                capture_output=True, text=True, timeout=180
-            )
+            # Call engine directly
+            report = run_full_analysis(symbol)
             
-            if result.returncode == 0:
-                output = result.stdout.strip()
-                # Find the JSON block starting with {
-                json_start = output.find('{')
-                if json_start != -1:
-                    output = output[json_start:]
-                
-                try:
-                    data = json.loads(output)
-                    report_msg = format_institutional_report(symbol, data)
-                    send_message(chat_id, report_msg)
-                except Exception as parse_err:
-                    send_message(chat_id, f"❌ Data Parsing Error: {parse_err}\nRaw: `{output[:100]}...`")
+            if report and "error" not in report:
+                report_msg = format_institutional_report(symbol, report)
+                send_message(chat_id, report_msg)
             else:
-                send_message(chat_id, f"❌ Analysis Failed for {symbol}.\n`{result.stderr[:200]}`")
+                send_message(chat_id, f"❌ Analysis Failed for {symbol}.\n`{report.get('error', 'Unknown Error')}`")
 
-        except subprocess.TimeoutExpired:
-            send_message(chat_id, f"⌛ *Analysis Timeout*: {symbol} analysis took too long.")
         except Exception as e:
              send_message(chat_id, f"❌ Execution Error: {str(e)}")
 

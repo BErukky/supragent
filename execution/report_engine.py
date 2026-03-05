@@ -104,19 +104,11 @@ def log_outcome_prediction(symbol, action, confidence, price):
     logs.append(entry)
     with open(log_file, 'w') as f: json.dump(logs, f, indent=2)
 
-def main():
-    parser = argparse.ArgumentParser(description='Super Signals 2.0 Report Engine.')
-    parser.add_argument('--structure', type=str, required=True)
-    parser.add_argument('--history', type=str, required=True)
-    parser.add_argument('--news', type=str, required=True)
-    parser.add_argument('--symbol', type=str, default="UNKNOWN")
-    args = parser.parse_args()
-    
+def generate_report(symbol, str_data, hist_data, news_data):
+    """
+    Direct functional entry point for the orchestrator.
+    """
     try:
-        with open(args.structure, 'r') as f: str_data = json.load(f)
-        with open(args.history, 'r') as f: hist_data = json.load(f)
-        with open(args.news, 'r') as f: news_data = json.load(f)
-        
         conf, action = aggregate_v2_confidence(str_data, hist_data, news_data)
         penalty = news_data.get("final_penalty", 0)
         risk = calculate_v2_risk(action, str_data, penalty)
@@ -124,7 +116,7 @@ def main():
         # Log for feedback loop
         ltf_struct = str_data.get("details", {}).get("raw_ltf_structure", [])
         last_p = ltf_struct[-1]['price'] if ltf_struct else 0
-        log_outcome_prediction(args.symbol, action, conf, last_p)
+        log_outcome_prediction(symbol, action, conf, last_p)
         
         # Governance Alerts
         alerts = []
@@ -153,15 +145,31 @@ def main():
         
         # --- TELEGRAM INTEGRATION ---
         # The telegram_listener.py now handles the primary reporting.
-        # This block is only for emergency high-confidence BROADCASTS.
         if conf >= 85 and "WAIT" not in action:
-            msg = f"🚀 *SUPER SIGNAL ALERT* 🚀\n\n*Symbol:* {args.symbol}\n*Signal:* {action}\n*Confidence:* {conf}/100\n\n*Price:* {last_p}"
+            msg = f"🚀 *SUPER SIGNAL ALERT* 🚀\n\n*Symbol:* {symbol}\n*Signal:* {action}\n*Confidence:* {conf}/100\n\n*Price:* {last_p}"
             if risk:
                 msg += f"\n*TP:* {risk.get('TAKE_PROFIT')[0]}\n*SL:* {risk.get('STOP_LOSS')}"
             send_telegram_alert(msg)
-        # ----------------------------
+            
+        return report
+    except Exception as e:
+        return {"error": str(e)}
 
-        print(json.dumps(report, indent=2))
+def main():
+    parser = argparse.ArgumentParser(description='Super Signals 2.0 Report Engine.')
+    parser.add_argument('--structure', type=str, required=True)
+    parser.add_argument('--history', type=str, required=True)
+    parser.add_argument('--news', type=str, required=True)
+    parser.add_argument('--symbol', type=str, default="UNKNOWN")
+    args = parser.parse_args()
+    
+    try:
+        with open(args.structure, 'r') as f: str_data = json.load(f)
+        with open(args.history, 'r') as f: hist_data = json.load(f)
+        with open(args.news, 'r') as f: news_data = json.load(f)
+        
+        result = generate_report(args.symbol, str_data, hist_data, news_data)
+        print(json.dumps(result, indent=2))
         
     except Exception as e:
         print(json.dumps({"error": str(e)}))

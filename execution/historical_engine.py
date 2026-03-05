@@ -61,15 +61,13 @@ def analyze_probabilistic_bias(matches):
     
     return bias, float(avg_weighted_return), float(confidence), false_positive_risk
 
-def main():
-    parser = argparse.ArgumentParser(description='Analyze Historical Similarity v2.')
-    parser.add_argument('--target', type=str, required=True, help='Current market data CSV')
-    parser.add_argument('--history', type=str, help='Historical DB CSV')
-    args = parser.parse_args()
-    
+def run_historical_analysis(target_csv, history_csv=None):
+    """
+    Direct functional entry point for the orchestrator.
+    """
     try:
-        target_df = pd.read_csv(args.target)
-        history_df = pd.read_csv(args.history) if args.history else target_df
+        target_df = pd.read_csv(target_csv)
+        history_df = pd.read_csv(history_csv) if history_csv else target_df
         
         window = 30 if len(target_df) < 100 else 50
         matches = find_similar_patterns(target_df, history_df, window_size=window)
@@ -78,7 +76,7 @@ def main():
         # Layer 3 score out of 20
         l3_score = round(20 * conf * (1.0 - (0.5 if fp_risk else 0.0)), 2)
 
-        result = {
+        return {
             "historical_bias": bias,
             "avg_weighted_return": round(ret * 100, 4),
             "match_confidence": round(conf, 2),
@@ -86,11 +84,21 @@ def main():
             "layer3_score": l3_score,
             "reasoning": f"Probabilistic Similarity: {round(conf*100,1)}%. Result: {bias} (FP Risk: {fp_risk})"
         }
-        print(json.dumps(result, indent=2))
-        
     except Exception as e:
-        print(json.dumps({"error": str(e)}))
+        return {"error": str(e)}
+
+def main():
+    parser = argparse.ArgumentParser(description='Analyze Historical Similarity v2.')
+    parser.add_argument('--target', type=str, required=True, help='Current market data CSV')
+    parser.add_argument('--history', type=str, help='Historical DB CSV')
+    args = parser.parse_args()
+
+    result = run_historical_analysis(args.target, args.history)
+    if "error" in result:
+        print(json.dumps(result))
         sys.exit(1)
+    else:
+        print(json.dumps(result, indent=2))
 
 if __name__ == "__main__":
     main()

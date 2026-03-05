@@ -50,21 +50,19 @@ def get_layer1_analysis(csv_path):
         print(f"Error processing {csv_path}: {e}")
         return None
 
-def main():
-    parser = argparse.ArgumentParser(description='Analyze Multi-Timeframe Confluence v2.')
-    parser.add_argument('--htf', type=str, required=True, help='Path to HTF CSV')
-    parser.add_argument('--ltf', type=str, required=True, help='Path to LTF CSV')
-    args = parser.parse_args()
-
+def run_confluence_analysis(htf_csv, ltf_csv):
+    """
+    Direct functional entry point for the orchestrator.
+    """
     # 1. Analyze HTF
-    htf_analysis = get_layer1_analysis(args.htf)
-    if not htf_analysis: sys.exit(1)
+    htf_analysis = get_layer1_analysis(htf_csv)
+    if not htf_analysis: return None
     htf_state = htf_analysis['structure_bias']
     htf_conf = htf_analysis['structure_confidence']
     
     # 2. Analyze LTF
-    ltf_analysis = get_layer1_analysis(args.ltf)
-    if not ltf_analysis: sys.exit(1)
+    ltf_analysis = get_layer1_analysis(ltf_csv)
+    if not ltf_analysis: return None
     ltf_state = ltf_analysis['structure_bias']
     ltf_conf = ltf_analysis['structure_confidence']
     
@@ -82,10 +80,9 @@ def main():
     elif htf_state == "BEARISH" and ltf_state in ["NEUTRAL", "RANGE"]:
         bias = "WAIT / SHORT_RECOVERY"
 
-    # Map coherence to Layer 2 "score" out of 30 for the final report
     l2_score = round(30 * coherence_score, 2)
 
-    result = {
+    return {
         "final_signal": bias,
         "coherence_score": coherence_score,
         "layer2_score": l2_score,
@@ -96,8 +93,18 @@ def main():
             "raw_ltf_structure": ltf_analysis['raw_structure']
         }
     }
-    
-    print(json.dumps(result, indent=2))
+
+def main():
+    parser = argparse.ArgumentParser(description='Analyze Multi-Timeframe Confluence v2.')
+    parser.add_argument('--htf', type=str, required=True, help='Path to HTF CSV')
+    parser.add_argument('--ltf', type=str, required=True, help='Path to LTF CSV')
+    args = parser.parse_args()
+
+    result = run_confluence_analysis(args.htf, args.ltf)
+    if result:
+        print(json.dumps(result, indent=2))
+    else:
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
