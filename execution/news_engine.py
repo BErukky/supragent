@@ -108,14 +108,24 @@ def analyze_news_cari(news_items):
     elif final_penalty >= 35: 
         risk_state = "CAUTION"
     elif final_penalty >= 15 and len(domains) < 2 and SOURCES.get(news_items[0].get("source_type", "AGGREGATOR"), 0.4) < 0.5:
-        # Only trigger WAIT_VERIFICATION if the penalty is significant enough (>= 15)
         risk_state = "WAIT_VERIFICATION"
+
+    # 8. Metadata for Governance
+    highest_scope = "unknown"
+    max_trust = 0.0
+    if results:
+        scope_priority = {"protocol": 4, "infrastructure": 3, "application": 2, "unknown": 1}
+        highest_scope = max([r['scope'] for r in results], key=lambda s: scope_priority.get(s, 0))
+        trusted_items = [SOURCES.get(item.get("source_type", "AGGREGATOR"), 0.4) for item in news_items if any(w in item.get("text", "").lower() for w in KEYWORDS["CRITICAL"] + KEYWORDS["NEGATIVE"])]
+        if trusted_items: max_trust = max(trusted_items)
 
     return {
         "risk_state": risk_state,
         "final_penalty": round(min(100, final_penalty), 2),
         "consensus_count": len(domains),
         "permits_trade": risk_state != "CRITICAL",
+        "highest_scope": highest_scope,
+        "max_trust": max_trust,
         "details": results,
         "layer4_score": round(max(0, 10 - (final_penalty / 10.0)), 2),
         "reasoning": f"Risk: {risk_state}. Penalty: {round(final_penalty, 1)}. Consensus: {len(domains)} (Domains: {', '.join(list(domains)[:3])})"

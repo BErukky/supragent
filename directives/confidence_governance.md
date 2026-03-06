@@ -1,4 +1,4 @@
-# 📘 Confidence Governance Directive
+# 📘 Confidence Governance Directive (v2.1)
 
 This directive defines how **Super Signals** moderates confidence, suppresses unsafe timing, and communicates uncertainty — **without altering market structure truth or generating new signals**.
 
@@ -16,63 +16,43 @@ This directive may **only reduce confidence or enforce WAIT states**. It must **
 
 ---
 
-## Integration Point
+## 1️⃣ Proportional Modulation (v2.1 Upgrade)
 
-This directive executes **after Layers 1–3** and **before final output (Layer 5)**.
+**Objective:** Prevent confidence collapses from "minor" news while maintaining a strict ceiling on risk.
 
-```
-Layer 1–3 → Base Confidence
-Layer 4   → Risk & Uncertainty Scan
-Governance→ Confidence Adjustment / Trade Suppression
-Layer 5   → Human-Readable Output
-```
+#### The Scaling Formula
 
----
+Base confidence is produced by Layers 1–3. Governance then applies the following scaling:
+`FinalConfidence = BaseConfidence * (1 - RiskPenalty / 100)`
 
-## Governance Components
-
-### 1️⃣ News Override Rules
-
-**Objective:** Prevent high-confidence signals during periods of elevated external uncertainty.
-
-#### Rules
-
-| Impact | Action                    | Annotation                                             |
-| ------ | ------------------------- | ------------------------------------------------------ |
-| NONE   | No modification           | -                                                      |
-| MEDIUM | Reduce confidence (-20)   | [!] News: Risk context detected (confidence moderated) |
-| HIGH   | Enforce `WAIT / NO_TRADE` | [!] News: High-impact event imminent (Risk Override)   |
+- **Penalty 0-35 (NORMAL)**: Negligible impact on confidence.
+- **Penalty 36-75 (CAUTION)**: Scales confidence down proportionally. Allows trades if chart strength is extremely high.
+- **Penalty >75 (CRITICAL)**: Mandatory `WAIT / LOCKED` state.
 
 ---
 
-### 2️⃣ Numeric Confidence Modulation
+## 2️⃣ Governance Lock Rules
 
-- Base confidence is produced by Layers 1–3.
-- Governance may **only subtract**, never add.
-- If final confidence < 75 (for longs) or > 25 (for shorts) after adjustments -> Enforce `WAIT`.
+### 🚨 Protocol Hard Lock
 
----
+**Any** news event classified as `protocol` (Chain halt, consensus bug, validator failure) originating from a **Trusted Source** (Trust >= 0.8) triggers an automatic **CRITICAL LOCK**.
 
-### 3️⃣ Historical Assimilation (Sanity Check)
+- **Technical signals are ignored**.
+- **Action is forced to WAIT**.
 
-**Objective:** Prevent overconfidence in structurally valid but historically fragile conditions.
+### 📉 Verification Hold (`WAIT_VERIFICATION`)
 
-| Historical Context | Effect                  | Annotation                                         |
-| ------------------ | ----------------------- | -------------------------------------------------- |
-| Consistent Adverse | Reduce confidence (-15) | [~] History: Similar structures showed instability |
-| Rare / unstable    | Flag uncertainty        | [~] History: Low data confidence in this structure |
+Triggered when a significant penalty (>= 15) is detected from a single, low-trust aggregator without consensus from independent domains.
+
+- **Hold Duration**: Until consensus is reached or risk decays.
 
 ---
 
-## Final Governance Decision Logic
+## 3️⃣ Threshold Logic
 
-1. If HIGH news override present -> Enforce `WAIT`.
-2. If final confidence < system threshold (75) -> Enforce `WAIT / NO_TRADE`.
-3. Directional bias is only allowed if all safety checks pass.
-
-> `WAIT` does **not** mean the market is wrong.
-> It means **acting now is unsafe**.
+- **Actionable Signal**: Bias is only allowed if `FinalConfidence >= 70`.
+- **System Default**: If `FinalConfidence < 70`, enforce `WAIT / NO_TRADE`.
 
 ---
 
-**Instruction to Agent**: Your role is to be **honest under uncertainty**. When in doubt, reduce confidence and prefer WAIT.
+**Instruction to Agent**: Your role is to be **honest under uncertainty**. When in doubt, prefer WAIT. v2.1 allows for more nuance, but safety remains the priority.

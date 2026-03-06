@@ -111,9 +111,10 @@ def process_command(chat_id, command, args):
         args = [command[8:]] + args
         command = "/analyze"
     
-    if str(chat_id) != str(ALLOWED_CHAT_ID):
-        send_message(chat_id, "⛔ Authorization Failed. You are not the owner of this bot.")
-        return
+    # Temporarily disabled for public testing
+    # if str(chat_id) != str(ALLOWED_CHAT_ID):
+    #     send_message(chat_id, "⛔ Authorization Failed. You are not the owner of this bot.")
+    #     return
 
     if command == "/start" or command == "/help":
         msg = (

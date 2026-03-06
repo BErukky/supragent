@@ -9,7 +9,7 @@ def aggregate_v2_confidence(str_res, hist_res, news_res):
     """
     Super Signals 2.0 Aggregation Model:
     Final Score = (L1 * 0.4) + (L2 * 0.3) + (L3 * 0.2) + (L4 * 0.1)
-    Then minus News Penalties (with structural dampening).
+    Then scaled by (1 - RiskPenalty / 100).
     """
     # Extract granular scores
     l1_score = str_res.get("details", {}).get("ltf_layer1", {}).get("layer1_score", 0)
@@ -20,30 +20,31 @@ def aggregate_v2_confidence(str_res, hist_res, news_res):
     # Scale each to 0-100 base for calculation
     base_confidence = 10.0 + l1_score + l2_score + l3_score + l4_score
     
-    # Apply Governance Penalties from News (CARI)
+    # Apply Proportional Governance (Precision Upgrade 1)
     penalty = news_res.get("final_penalty", 0)
     risk_state = news_res.get("risk_state", "NORMAL")
+    event_scope = news_res.get("highest_scope", "unknown")
+    source_trust = news_res.get("max_trust", 0.0)
     
-    # --- Structural Dampening (Refinement 4) ---
-    # Strong structural alignment dampens weak news.
-    # L1 Max is 30, so >24 is 80%. L2 Max is 30, so >25.5 is 85%.
-    if l1_score > 24 and l2_score > 25.5:
-        penalty *= 0.7
-        news_res["dampening_applied"] = True
-
-    final_confidence = max(0, base_confidence - penalty)
+    # Proportional scaling instead of direct subtraction
+    final_confidence = base_confidence * (1 - penalty / 100.0)
     
     # Determine Action based on 3-State Logic
     bias = str_res.get("final_signal", "WAIT / NO_TRADE")
     action = "WAIT / NO_TRADE"
     
-    # Adaptive Logic: Only CRITICAL and WAIT_VERIFICATION strictly block.
-    # CAUTION reduces confidence but allows the signal if it stays >= 70.
+    # --- Precision Lock Rule ---
+    # If PROTOCOL risk from TRUSTED source -> Force CRITICAL
+    if event_scope == "protocol" and source_trust >= 0.8:
+        risk_state = "CRITICAL"
+        news_res["risk_state"] = "CRITICAL" # Update for reporting
+
+    # Adaptive Logic
     if risk_state == "CRITICAL":
         action = "WAIT / LOCKED (CRITICAL NEWS)"
     elif risk_state == "WAIT_VERIFICATION":
         action = "WAIT / VERIFYING NEWS"
-    elif final_confidence >= 70: # Slightly lower threshold for 'Opportunity'
+    elif final_confidence >= 70:
         if "LONG" in bias: action = "LONG_BIAS"
         elif "SHORT" in bias: action = "SHORT_BIAS"
     
@@ -54,8 +55,8 @@ def aggregate_v2_confidence(str_res, hist_res, news_res):
 
 def calculate_v2_risk(action, str_data, news_penalty):
     """
-    Tightens TP/SL based on news penalty.
-    Calculates levels even for WAIT signals for user context.
+    Precision Upgrade: Tightens TP/SL based on news penalty.
+    Includes fallback buffers for low-confidence states.
     """
     details = str_data.get("details", {})
     ltf_struct = details.get("raw_ltf_structure", [])
@@ -63,24 +64,38 @@ def calculate_v2_risk(action, str_data, news_penalty):
     
     last_price = ltf_struct[-1]['price']
     
-    # Logic: More news risk = tighter TP targets (locking in profit early)
-    risk_multi = 1.0 - (news_penalty / 200.0) # Reduce multi if penalty > 0
+    # Logic: More news risk = tighter TP targets
+    risk_multi = 1.0 - (news_penalty / 200.0)
     if "WAIT" in action or "LOCKED" in action:
-        # For WAIT signals, we still show levels but maybe keep them standard
         risk_multi = 1.0
     
-    # Find SL
+    # 1. Structural Calculation
     sl_price = 0.0
-    if action == "LONG_BIAS":
+    if "LONG" in action:
         sl_node = next((s for s in reversed(ltf_struct) if 'L' in s['type']), None)
-        sl_price = sl_node['price'] if sl_node else last_price * 0.98
-        risk = abs(last_price - sl_price)
-        tps = [round(last_price + (risk * 1.0 * risk_multi), 2), round(last_price + (risk * 2.0 * risk_multi), 2)]
+        sl_price = sl_node['price'] if sl_node else last_price * 0.99
     else:
         sl_node = next((s for s in reversed(ltf_struct) if 'H' in s['type']), None)
-        sl_price = sl_node['price'] if sl_node else last_price * 1.02
-        risk = abs(sl_price - last_price)
-        tps = [round(last_price - (risk * 1.0 * risk_multi), 2), round(last_price - (risk * 2.0 * risk_multi), 2)]
+        sl_price = sl_node['price'] if sl_node else last_price * 1.01
+
+    risk = abs(last_price - sl_price)
+    
+    # 2. Reliability Check & Fallback (Precision Upgrade 2)
+    min_buffer = last_price * 0.003
+    if risk < min_buffer:
+        # Apply Minimal Structural Buffer
+        if "LONG" in action:
+            sl_price = last_price * 0.997
+            tps = [round(last_price * 1.006, 2), round(last_price * 1.012, 2)]
+        else:
+            sl_price = last_price * 1.003
+            tps = [round(last_price * 0.994, 2), round(last_price * 0.988, 2)]
+    else:
+        # Standard structural targets
+        if "LONG" in action:
+            tps = [round(last_price + (risk * 1.0 * risk_multi), 2), round(last_price + (risk * 2.0 * risk_multi), 2)]
+        else:
+            tps = [round(last_price - (risk * 1.0 * risk_multi), 2), round(last_price - (risk * 2.0 * risk_multi), 2)]
         
     return {"STOP_LOSS": round(sl_price, 2), "TAKE_PROFIT": tps, "RISK_OFFSET": round(risk_multi, 2)}
 

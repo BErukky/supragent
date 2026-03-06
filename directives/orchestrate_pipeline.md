@@ -1,43 +1,36 @@
-# Directive: Orchestrate Full Pipeline
+# Directive: Orchestrate Full Pipeline v2.1
 
 ## Goal
 
-Create a single command (`python main.py`) that runs the entire analysis pipeline and produces a consolidated, clean summary report.
+Maintain a unified entry point (`python main.py`) for individual analysis and a multi-asset scanner (`python execution/market_scanner.py`) for autonomous monitoring.
 
-## Inputs
+## 1. Primary Orchestrator (`main.py`)
 
-- `--symbol`: e.g. BTC/USDT
-- `--htf`: e.g. 1h
-- `--ltf`: e.g. 15m
+Runs the 5-layer analysis for a single symbol.
 
-## Tools / Scripts
+- **Inputs**: `--symbol`, `--htf`, `--ltf`.
+- **Logic**:
+  1.  Fetch real-time data via `yfinance`.
+  2.  Execute Layer 1 & 2 (Structure & Confluence).
+  3.  Execute Layer 3 (Historical Analog Matching).
+  4.  Execute Layer 4 (CARI News Risk Analysis).
+  5.  Execute Layer 5 (Precision Governance aggregation).
+- **Output**: Detailed console JSON or clean summary.
 
-- `main.py`: This script will:
-  1.  Call `market_data.py` (or mock) to get HTF and LTF data.
-  2.  Call `confluence_engine.py` to get Structure/Trend.
-  3.  Call `historical_engine.py` to get History Bias.
-  4.  Call `news_engine.py` to get Risk Score.
-  5.  Call `report_engine.py` to get Final Signal & Risk Levels.
-  6.  **Print a "Clean" Summary** to the console.
+## 2. Market Scanner (`execution/market_scanner.py`)
 
-## Desired Output Format
+Iterates through Top 10 assets for high-confidence setups.
 
-```text
-=== SUPER SIGNALS REPORT ===
-Symbol: BTC/USDT | Date: 2026-01-31 10:00
+- **v2.1 Precision Option**: Use `--no_news` to run a pure technical scan, bypassing the Layer 4 news filter.
+- **Alerting**: Automatically triggers Telegram alerts if `Confidence >= 85`.
 
- SIGNAL:      LONG_BIAS (High Confidence)
- ENTRY ZONE:  LTF Market Price
+## 3. Deployment (`app.py`)
 
- STOP LOSS:   42,280.00
- TAKE PROFIT: 45,720.00 | 47,440.00
+Unified Flask service and Telegram listener.
 
---- CONFIRMATION ---
- [X] Structure: Bullish Confluence
- [X] History:   Bullish (+2.5% avg return)
- [X] News:      Positive Sentiment
+- **Health Check**: `GET /` returns system status.
+- **Bot Commands**: Responds to `/scan`, `/scan_tech`, and `/analyze` directly in Telegram.
 
---- RISK NOTE ---
- No critical news risks detected.
-=============================
-```
+---
+
+**Instruction to Agent**: Ensure all entry points respect the v2.1 precision scaling and TP/SL fallback rules.

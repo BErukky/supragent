@@ -1,34 +1,37 @@
-# Directive: Risk Management (TP/SL)
+# Directive: Risk Management (TP/SL) v2.1
 
 ## Goal
 
-Enhance the final report with specific Take Profit (TP) and Stop Loss (SL) price levels based on market structure.
+Enhance the final report with specific Take Profit (TP) and Stop Loss (SL) price levels based on market structure with **v2.1 Reliability Fallbacks**.
 
-## Inputs
-
-- `structure_points`: List of recent HH, HL, LL, LH, with prices.
-- `current_bias`: LONG or SHORT.
-- `current_price`: Close price of the last candle.
-
-## Tools / Scripts
-
-- `execution/report_engine.py` (Extended)
-
-## Logic
+## 1. Structural Logic (Primary)
 
 1.  **Stop Loss (Invalidation)**:
-    - **LONG**: Find the most recent _Swing Low_ (HL or LL) from the structure list. Set SL slightly below it (e.g. 0.5% buffer or ATR based, simplifed to absolute price for now).
-    - **SHORT**: Find the most recent _Swing High_ (HH or LH). Set SL slightly above it.
-
+    - **LONG**: Use a recent _Swing Low_ (HL or LL).
+    - **SHORT**: Use a recent _Swing High_ (HH or LH).
 2.  **Take Profit (Targets)**:
-    - **LONG**: Find the most recent _Swing High_ above current price. If none, project a 1.5R distance.
-    - **SHORT**: Find the most recent _Swing Low_ below current price. If none, project a 1.5R distance.
+    - Distance is calculated based on Price - SL distance (Risk).
+    - **TP1**: 1.0R (1x Risk).
+    - **TP2**: 2.0R (2x Risk).
 
-## Governance States
+## 2. v2.1 Reliability Fallbacks (Secondary)
 
-1. **NORMAL**: No critical risks. Full execution based on structure.
-2. **CAUTION**: Medium-risk/Unconfirmed alerts. Tighten SL/TP.
-3. **WAIT_VERIFICATION**: Temporary state (30-90m) for unconfirmed low-trust signals. System holds while seeking consensus.
-4. **CRITICAL / LOCKED**: Mandatory wait. No trades permitted until risk resolved or decays.
+If the structural distance (Risk) is less than **0.3% of current price**, or the structure is unclear, the system must apply a mandatory buffer to prevent overlapping levels:
+
+- **Stop Loss (SL)**: Entry ± 0.3%.
+- **Take Profit 1 (TP1)**: Entry ± 0.6%.
+- **Take Profit 2 (TP2)**: Entry ± 1.2%.
+
+Direction follows the structural bias.
+
+## 3. Governance Tightening
+
+- **NORMAL**: Structural targets with 1.0x Risk Multiplier.
+- **CAUTION**: News risk scales the `TP` distance down (e.g., locking in profits early), but **never moves the Stop Loss** into an unsafe range.
+- Formula: `Risk_Multi = 1 - (News_Penalty / 200)`.
+
+---
+
+**Instruction to Agent**: Stability is paramount. If the chart is "quiet," provide the 0.3% fallback rather than a zero-distance TP/SL.
 
 ## Outputs
