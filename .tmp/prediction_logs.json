@@ -1,555 +1,1253 @@
 [
   {
-    "timestamp": "2026-02-02 00:03:17.594726",
+    "timestamp": "2026-03-09 15:55:30.216041",
     "symbol": "BTC/USD",
     "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 77527.2109375
+    "confidence": 53.36,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
   },
   {
-    "timestamp": "2026-02-03 09:54:15.827809",
+    "timestamp": "2026-03-09 15:57:27.848765",
     "symbol": "BTC/USD",
     "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 77936.09375
+    "confidence": 54.05,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
   },
   {
-    "timestamp": "2026-02-03 09:55:12.191337",
+    "timestamp": "2026-03-09 15:58:37.662164",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 54.05,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:00:33.153177",
+    "symbol": "BTC/USD",
+    "action": "SHORT_BIAS",
+    "confidence": 88.8,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:02:48.884482",
+    "symbol": "BTC/USD",
+    "action": "SHORT_BIAS",
+    "confidence": 88.8,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:03:21.980529",
+    "symbol": "USD/JPY",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 59.97,
+    "entry_price": 158.54400634765625,
+    "snapshot_close": 158.54400634765625,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:05:08.022922",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.3348639011383057,
+    "snapshot_close": 1.3348639011383057,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:07:51.508747",
+    "symbol": "USD/CHF",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 0.7807599902153015,
+    "snapshot_close": 0.7807599902153015,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:09:04.107192",
+    "symbol": "USD/CHF",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 0.7807599902153015,
+    "snapshot_close": 0.7807599902153015,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:09:44.292782",
+    "symbol": "USD/CHF",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 60.83,
+    "entry_price": 0.7807599902153015,
+    "snapshot_close": 0.7807599902153015,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:12:23.843274",
+    "symbol": "USD/CHF",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 63.48,
+    "entry_price": 0.7807599902153015,
+    "snapshot_close": 0.7807599902153015,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:13:50.034682",
+    "symbol": "XAU/USD",
+    "action": "SHORT_BIAS",
+    "confidence": 80.84,
+    "entry_price": 5066.89990234375,
+    "snapshot_close": 5066.89990234375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:25:31.468895",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 65.61,
+    "entry_price": 5066.89990234375,
+    "snapshot_close": 5066.89990234375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:47:46.210483",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 62.8,
+    "entry_price": 68862.078125,
+    "snapshot_close": 68862.078125,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:47:55.636769",
+    "symbol": "BTC/USD",
+    "action": "LONG_BIAS",
+    "confidence": 93.24,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:48:05.369141",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 77.27,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:48:13.762798",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 66.23,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:48:22.519979",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 41.29,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:48:31.155702",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:50:06.428558",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 60.87,
+    "entry_price": 68862.078125,
+    "snapshot_close": 68862.078125,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:50:18.034831",
+    "symbol": "BTC/USD",
+    "action": "LONG_BIAS",
+    "confidence": 93.39,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:50:30.824922",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 75.11,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:50:42.791835",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 64.06,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:50:51.646899",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:51:02.260803",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:52:09.055683",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 57.9,
+    "entry_price": 68771.984375,
+    "snapshot_close": 68771.984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:52:19.183612",
+    "symbol": "BTC/USD",
+    "action": "LONG_BIAS",
+    "confidence": 97.24,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:52:30.906374",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 80.41,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:52:40.534898",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 69.36,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:52:50.086469",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:53:00.694260",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 40.31,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:55:42.972137",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68887.9609375,
+    "snapshot_close": 68887.9609375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:55:52.620446",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68771.984375,
+    "snapshot_close": 68771.984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:56:01.668766",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 78.99,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:56:11.380810",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 67.94,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:56:19.864261",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:56:28.191864",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:59:05.034784",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68829.421875,
+    "snapshot_close": 68829.421875,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:59:16.084065",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68771.984375,
+    "snapshot_close": 68771.984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:59:25.978711",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 76.0,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:59:35.612973",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 64.94,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:59:45.143949",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 16:59:57.618913",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:02:33.964816",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68829.421875,
+    "snapshot_close": 68829.421875,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:02:44.823075",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68771.984375,
+    "snapshot_close": 68771.984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:02:55.841064",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 60.49,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:03:04.755902",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 49.0,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:03:13.353279",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:03:21.593469",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:04:50.777850",
+    "symbol": "BTC/USD",
+    "action": "LONG_BIAS",
+    "confidence": 76.63,
+    "entry_price": 69033.59375,
+    "snapshot_close": 69033.59375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:05:00.799948",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68771.984375,
+    "snapshot_close": 68771.984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:05:10.348035",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 63.56,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:05:19.180047",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 52.07,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:05:28.302311",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:05:36.871823",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:06:06.575290",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 60.77,
+    "entry_price": 69033.59375,
+    "snapshot_close": 69033.59375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:06:17.563383",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68771.984375,
+    "snapshot_close": 68771.984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:06:27.764170",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 60.7,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:06:36.811927",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 49.2,
+    "entry_price": 69453.5,
+    "snapshot_close": 69453.5,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:06:45.183289",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:06:53.979714",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 67398.3984375,
+    "snapshot_close": 67398.3984375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:19:41.125721",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68952.7,
+    "snapshot_close": 68952.7,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:19:56.720797",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 69066.11,
+    "snapshot_close": 69066.11,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:20:11.116225",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68596.12,
+    "snapshot_close": 68596.12,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:20:21.445805",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68596.12,
+    "snapshot_close": 68596.12,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:20:40.845066",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 67370.97,
+    "snapshot_close": 67370.97,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:20:57.908995",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 67370.97,
+    "snapshot_close": 67370.97,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:21:41.114889",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68952.7,
+    "snapshot_close": 68952.7,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:21:55.555076",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 69066.11,
+    "snapshot_close": 69066.11,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:22:10.060146",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68596.12,
+    "snapshot_close": 68596.12,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:22:18.479395",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68596.12,
+    "snapshot_close": 68596.12,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:22:32.770798",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 67370.97,
+    "snapshot_close": 67370.97,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:22:47.528204",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 67370.97,
+    "snapshot_close": 67370.97,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:30:41.407762",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 40.72,
+    "entry_price": 1.1551345586776731,
+    "snapshot_close": 1.1551345586776731,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:31:20.195627",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 44.72,
+    "entry_price": 1.1551345586776731,
+    "snapshot_close": 1.1551345586776731,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:37:59.747962",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 45.93,
+    "entry_price": 1.1551345586776731,
+    "snapshot_close": 1.1551345586776731,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 17:49:18.932047",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.1574074029922483,
+    "snapshot_close": 1.1574074029922483,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:38:18.984241",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 69143.08,
+    "snapshot_close": 69143.08,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:39:21.473828",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 69143.08,
+    "snapshot_close": 69143.08,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:40:06.366594",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 69143.08,
+    "snapshot_close": 69143.08,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:41:12.722890",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 69143.08,
+    "snapshot_close": 69143.08,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:41:56.532279",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 45.6,
+    "entry_price": 69143.08,
+    "snapshot_close": 69143.08,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:43:41.297656",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 68975.83,
+    "snapshot_close": 68975.83,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:43:58.276629",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 62.17,
+    "entry_price": 69049.98,
+    "snapshot_close": 69049.98,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:44:16.646560",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 47.05,
+    "entry_price": 69143.08,
+    "snapshot_close": 69143.08,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:44:24.971940",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 45.6,
+    "entry_price": 69143.08,
+    "snapshot_close": 69143.08,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:44:47.223582",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 67.09,
+    "entry_price": 69438.9,
+    "snapshot_close": 69438.9,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:45:01.244722",
+    "symbol": "BTC/USD",
+    "action": "LONG_BIAS",
+    "confidence": 81.89,
+    "entry_price": 69438.9,
+    "snapshot_close": 69438.9,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:46:30.545001",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 68975.83,
+    "snapshot_close": 68975.83,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:46:45.122434",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 69049.98,
+    "snapshot_close": 69049.98,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:46:59.394567",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 69143.08,
+    "snapshot_close": 69143.08,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:47:08.882500",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 69143.08,
+    "snapshot_close": 69143.08,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:47:23.391012",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 67.09,
+    "entry_price": 69438.9,
+    "snapshot_close": 69438.9,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:47:37.759501",
+    "symbol": "BTC/USD",
+    "action": "LONG_BIAS",
+    "confidence": 81.89,
+    "entry_price": 69438.9,
+    "snapshot_close": 69438.9,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:51:44.778390",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 50.19,
+    "entry_price": 5090.70085,
+    "snapshot_close": 5090.70085,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:51:49.649394",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 52.04,
+    "entry_price": 5089.07599,
+    "snapshot_close": 5089.07599,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:51:54.626516",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 5110.14382,
+    "snapshot_close": 5110.14382,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:51:57.356264",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 5110.14382,
+    "snapshot_close": 5110.14382,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:52:04.760585",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 52.59,
+    "entry_price": 5113.40364,
+    "snapshot_close": 5113.40364,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:52:10.018886",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 52.89,
+    "entry_price": 5113.40364,
+    "snapshot_close": 5113.40364,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 18:57:58.986197",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 69143.08,
+    "snapshot_close": 69143.08,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 19:02:38.009953",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 69143.08,
+    "snapshot_close": 69143.08,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 19:10:00.017692",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 69143.08,
+    "snapshot_close": 69143.08,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:36:34.547707",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.16102,
+    "snapshot_close": 1.16102,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:36:42.577532",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 50.14,
+    "entry_price": 1.15763,
+    "snapshot_close": 1.15763,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:36:52.374186",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.15776,
+    "snapshot_close": 1.15776,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:36:57.014449",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE (R:R < 1.5)",
+    "confidence": 74.16,
+    "entry_price": 1.15776,
+    "snapshot_close": 1.15776,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:37:07.634845",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.15463,
+    "snapshot_close": 1.15463,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:37:16.230259",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.15463,
+    "snapshot_close": 1.15463,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:42:22.432928",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.16104,
+    "snapshot_close": 1.16104,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:42:35.283645",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 47.04,
+    "entry_price": 1.1622,
+    "snapshot_close": 1.1622,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:42:47.346178",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.15776,
+    "snapshot_close": 1.15776,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:43:03.010903",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE (R:R < 1.5)",
+    "confidence": 74.59,
+    "entry_price": 1.15776,
+    "snapshot_close": 1.15776,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:43:12.197757",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 66.04,
+    "entry_price": 1.15463,
+    "snapshot_close": 1.15463,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:43:24.697788",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 62.62,
+    "entry_price": 1.15463,
+    "snapshot_close": 1.15463,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:48:39.499078",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 68.09,
+    "entry_price": 1.15763,
+    "snapshot_close": 1.15763,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 20:48:50.428326",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 57.85,
+    "entry_price": 1.15763,
+    "snapshot_close": 1.15763,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:01:00.105515",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 69.99,
+    "entry_price": 1.15763,
+    "snapshot_close": 1.15763,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:01:12.399537",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 59.7,
+    "entry_price": 1.15763,
+    "snapshot_close": 1.15763,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:05:57.894577",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 55.49,
+    "entry_price": 68974.8,
+    "snapshot_close": 68974.8,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:06:26.379082",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68825.17,
+    "snapshot_close": 68825.17,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:07:01.362357",
+    "symbol": "BTC/USD",
+    "action": "SHORT_BIAS",
+    "confidence": 93.93,
+    "entry_price": 68278.12,
+    "snapshot_close": 68278.12,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:07:22.379399",
+    "symbol": "BTC/USD",
+    "action": "SHORT_BIAS",
+    "confidence": 95.41,
+    "entry_price": 68278.12,
+    "snapshot_close": 68278.12,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:07:43.904209",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 40.16,
+    "entry_price": 69438.9,
+    "snapshot_close": 69438.9,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:08:00.815693",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 43.99,
+    "entry_price": 69438.9,
+    "snapshot_close": 69438.9,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:24:25.050143",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 68958.79,
+    "snapshot_close": 68958.79,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:24:47.027714",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 69126.4,
+    "snapshot_close": 69126.4,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:25:09.652322",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 69487.61,
+    "snapshot_close": 69487.61,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:25:18.659944",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 69487.61,
+    "snapshot_close": 69487.61,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:25:42.210146",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 41.22,
+    "entry_price": 69438.9,
+    "snapshot_close": 69438.9,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:26:00.005239",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 44.16,
+    "entry_price": 69438.9,
+    "snapshot_close": 69438.9,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:26:52.640493",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 69487.61,
+    "snapshot_close": 69487.61,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-09 21:27:16.434784",
     "symbol": "ETH/USD",
     "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 2330.089599609375
+    "confidence": 54.45,
+    "entry_price": 2044.5,
+    "snapshot_close": 2044.5,
+    "outcome_checked": false
   },
   {
-    "timestamp": "2026-02-03 09:55:48.772634",
-    "symbol": "XRP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 1.5998395681381226
-  },
-  {
-    "timestamp": "2026-02-03 09:56:35.008273",
-    "symbol": "ADA/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 0.2997669875621795
-  },
-  {
-    "timestamp": "2026-02-03 10:05:40.388266",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 78405.5546875
-  },
-  {
-    "timestamp": "2026-02-03 10:06:09.216985",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 2309.113037109375
-  },
-  {
-    "timestamp": "2026-02-03 10:06:37.600045",
+    "timestamp": "2026-03-09 21:27:37.136937",
     "symbol": "SOL/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 103.02073669433594
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 86.79,
+    "snapshot_close": 86.79,
+    "outcome_checked": false
   },
   {
-    "timestamp": "2026-02-03 10:07:08.189718",
+    "timestamp": "2026-03-09 21:28:24.626762",
     "symbol": "XRP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 1.5998395681381226
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.38437,
+    "snapshot_close": 1.38437,
+    "outcome_checked": false
   },
   {
-    "timestamp": "2026-02-03 10:07:38.613157",
+    "timestamp": "2026-03-09 21:29:36.725422",
     "symbol": "ADA/USD",
     "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 0.2997669875621795
+    "confidence": 42.17,
+    "entry_price": 0.262563,
+    "snapshot_close": 0.262563,
+    "outcome_checked": false
   },
   {
-    "timestamp": "2026-02-03 10:08:20.444180",
+    "timestamp": "2026-03-09 21:30:36.256265",
     "symbol": "DOGE/USD",
     "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 0.1061277687549591
+    "confidence": 43.46,
+    "entry_price": 0.092831,
+    "snapshot_close": 0.092831,
+    "outcome_checked": false
   },
   {
-    "timestamp": "2026-02-03 10:09:04.194843",
+    "timestamp": "2026-03-09 21:31:42.179252",
     "symbol": "DOT/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 1.5315337181091309
-  },
-  {
-    "timestamp": "2026-02-03 10:09:57.919652",
-    "symbol": "LTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 60.032527923583984
-  },
-  {
-    "timestamp": "2026-02-03 10:10:31.557155",
-    "symbol": "LINK/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 9.749723434448242
-  },
-  {
-    "timestamp": "2026-02-03 10:26:57.574415",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 39.85,
-    "entry_price": 78942.1796875
-  },
-  {
-    "timestamp": "2026-02-03 10:27:21.462414",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 52.23,
-    "entry_price": 2330.089599609375
-  },
-  {
-    "timestamp": "2026-02-03 10:27:47.250436",
-    "symbol": "SOL/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 48.38,
-    "entry_price": 103.02073669433594
-  },
-  {
-    "timestamp": "2026-02-03 10:28:12.025768",
-    "symbol": "XRP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 46.54,
-    "entry_price": 1.5998395681381226
-  },
-  {
-    "timestamp": "2026-02-03 10:28:42.151696",
-    "symbol": "ADA/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 45.84,
-    "entry_price": 0.2997669875621795
-  },
-  {
-    "timestamp": "2026-02-03 10:29:08.728024",
-    "symbol": "DOGE/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 52.6,
-    "entry_price": 0.1061277687549591
-  },
-  {
-    "timestamp": "2026-02-03 10:29:40.531753",
-    "symbol": "DOT/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 48.35,
-    "entry_price": 1.5315337181091309
-  },
-  {
-    "timestamp": "2026-02-03 10:30:43.147420",
-    "symbol": "LTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 58.55,
-    "entry_price": 60.32244873046875
-  },
-  {
-    "timestamp": "2026-02-03 10:31:30.219644",
-    "symbol": "LINK/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 46.13,
-    "entry_price": 9.749723434448242
-  },
-  {
-    "timestamp": "2026-02-03 10:49:59.498280",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 78942.1796875
-  },
-  {
-    "timestamp": "2026-02-03 10:50:38.397376",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 52.21,
-    "entry_price": 2330.089599609375
-  },
-  {
-    "timestamp": "2026-02-03 10:51:36.500889",
-    "symbol": "XRP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 1.622902274131775
-  },
-  {
-    "timestamp": "2026-02-03 10:57:08.733080",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 78942.1796875
-  },
-  {
-    "timestamp": "2026-02-07 15:33:30.309176",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 69261.984375
-  },
-  {
-    "timestamp": "2026-02-07 15:34:31.359628",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 2027.547607421875
-  },
-  {
-    "timestamp": "2026-02-07 15:39:05.775215",
-    "symbol": "SOL/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 85.69253540039062
-  },
-  {
-    "timestamp": "2026-02-07 15:40:57.199331",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 40.68,
-    "entry_price": 1.4282318353652954
-  },
-  {
-    "timestamp": "2026-02-07 15:41:12.951323",
-    "symbol": "XRP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 1.4282318353652954
-  },
-  {
-    "timestamp": "2026-02-07 15:42:45.229559",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 50.12,
-    "entry_price": 2027.547607421875
-  },
-  {
-    "timestamp": "2026-02-07 15:43:51.069202",
-    "symbol": "ADA/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 0.2733445167541504
-  },
-  {
-    "timestamp": "2026-02-07 15:45:18.898222",
-    "symbol": "SOL/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 36.84,
-    "entry_price": 85.69253540039062
-  },
-  {
-    "timestamp": "2026-02-07 15:46:16.755506",
-    "symbol": "DOGE/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 0.097268171608448
-  },
-  {
-    "timestamp": "2026-02-07 15:47:00.960008",
-    "symbol": "XRP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 40.68,
-    "entry_price": 1.4282318353652954
-  },
-  {
-    "timestamp": "2026-02-07 15:48:52.018429",
-    "symbol": "DOT/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 0.271222174167633
-  },
-  {
-    "timestamp": "2026-02-07 15:49:19.917812",
-    "symbol": "ADA/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 40.37,
-    "entry_price": 0.271222174167633
-  },
-  {
-    "timestamp": "2026-02-07 15:54:50.762608",
-    "symbol": "DOGE/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 47.6,
-    "entry_price": 0.097268171608448
-  },
-  {
-    "timestamp": "2026-02-07 15:59:02.289115",
-    "symbol": "LTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 54.36494064331055
-  },
-  {
-    "timestamp": "2026-02-07 16:00:05.920288",
-    "symbol": "DOT/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 50.83,
-    "entry_price": 1.362152934074402
-  },
-  {
-    "timestamp": "2026-02-07 16:02:36.996795",
-    "symbol": "LINK/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 8.878791809082031
-  },
-  {
-    "timestamp": "2026-02-07 16:04:55.804139",
-    "symbol": "LTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 50.43,
-    "entry_price": 54.12205123901367
-  },
-  {
-    "timestamp": "2026-02-07 16:07:54.323613",
-    "symbol": "LINK/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 39.78,
-    "entry_price": 8.878791809082031
-  },
-  {
-    "timestamp": "2026-02-07 16:50:35.909000",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 68375.5546875
-  },
-  {
-    "timestamp": "2026-02-07 16:52:01.928296",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 2011.58740234375
-  },
-  {
-    "timestamp": "2026-02-07 16:53:08.773232",
-    "symbol": "SOL/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 85.69740295410156
-  },
-  {
-    "timestamp": "2026-02-07 16:54:24.501064",
-    "symbol": "XRP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 1.39489483833313
-  },
-  {
-    "timestamp": "2026-02-07 16:55:27.615074",
-    "symbol": "ADA/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 0.2689871788024902
-  },
-  {
-    "timestamp": "2026-02-07 16:56:24.708840",
-    "symbol": "DOGE/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 0.095581330358982
-  },
-  {
-    "timestamp": "2026-02-07 16:57:27.167994",
-    "symbol": "DOT/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 1.3308484554290771
-  },
-  {
-    "timestamp": "2026-02-07 17:10:44.161265",
-    "symbol": "LTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 48.98,
-    "entry_price": 53.70294952392578
-  },
-  {
-    "timestamp": "2026-02-07 17:11:28.383610",
-    "symbol": "LINK/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 39.78,
-    "entry_price": 8.878791809082031
-  },
-  {
-    "timestamp": "2026-02-08 11:33:44.587469",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 70681.6171875
-  },
-  {
-    "timestamp": "2026-02-08 11:34:57.329763",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 2118.64208984375
-  },
-  {
-    "timestamp": "2026-02-08 11:35:54.458513",
-    "symbol": "SOL/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 88.67303466796875
-  },
-  {
-    "timestamp": "2026-02-08 11:37:14.618333",
-    "symbol": "XRP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 1.453846096992493
-  },
-  {
-    "timestamp": "2026-02-08 11:38:18.729448",
-    "symbol": "ADA/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 0.2755100131034851
-  },
-  {
-    "timestamp": "2026-02-08 11:39:27.306832",
-    "symbol": "DOGE/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 0.0985215827822685
-  },
-  {
-    "timestamp": "2026-02-08 11:40:31.264310",
-    "symbol": "DOT/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 1.3725210428237915
-  },
-  {
-    "timestamp": "2026-02-08 11:42:06.728800",
-    "symbol": "LTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 55.66569900512695
-  },
-  {
-    "timestamp": "2026-02-08 11:42:53.445598",
-    "symbol": "LINK/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 8.952095031738281
-  },
-  {
-    "timestamp": "2026-02-08 12:54:33.720244",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 69862.25
-  },
-  {
-    "timestamp": "2026-02-08 13:36:27.704562",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 71117.5859375
-  },
-  {
-    "timestamp": "2026-02-08 13:37:40.683170",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 2084.482421875
-  },
-  {
-    "timestamp": "2026-02-08 13:39:01.876549",
-    "symbol": "SOL/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 45.44,
-    "entry_price": 86.60774993896484
-  },
-  {
-    "timestamp": "2026-02-08 13:40:01.616374",
-    "symbol": "XRP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 1.4300788640975952
-  },
-  {
-    "timestamp": "2026-02-08 13:41:08.920050",
-    "symbol": "ADA/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 0.2703557908535003
-  },
-  {
-    "timestamp": "2026-02-08 13:42:14.833502",
-    "symbol": "DOGE/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 0.0983248651027679
-  },
-  {
-    "timestamp": "2026-02-08 13:43:06.990284",
-    "symbol": "DOT/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 1.369428277015686
-  },
-  {
-    "timestamp": "2026-02-08 13:44:31.559600",
-    "symbol": "LTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 55.46939086914063
-  },
-  {
-    "timestamp": "2026-02-08 13:45:31.126502",
-    "symbol": "LINK/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 8.827412605285645
-  },
-  {
-    "timestamp": "2026-03-02 16:47:43.093185",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 48831.692285177895
-  },
-  {
-    "timestamp": "2026-03-02 16:53:16.900408",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 0,
-    "entry_price": 65309.109375
-  },
-  {
-    "timestamp": "2026-03-03 10:33:09.335819",
-    "symbol": "BTC/USD",
-    "action": "WAIT / VERIFYING NEWS",
-    "confidence": 41.16,
-    "entry_price": 68248.921875
-  },
-  {
-    "timestamp": "2026-03-03 13:40:23.228770",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 68.94,
-    "entry_price": 66401.0546875
-  },
-  {
-    "timestamp": "2026-03-04 22:07:17.541486",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 27.68,
-    "entry_price": 74041.8125
-  },
-  {
-    "timestamp": "2026-03-06 22:16:27.109031",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 20.21,
-    "entry_price": 67778.1484375
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.531,
+    "snapshot_close": 1.531,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-14 17:54:31.743352",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 5019.6216,
+    "snapshot_close": 5019.6216,
+    "outcome_checked": false
   }
 ]

@@ -3,13 +3,34 @@ import xml.etree.ElementTree as ET
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 
 RSS_FEEDS = {
     "https://www.coindesk.com/arc/outboundfeeds/rss/?outputType=xml": {"type": "TIER_1", "domain": "coindesk.com"},
     "https://cointelegraph.com/rss": {"type": "TIER_1", "domain": "cointelegraph.com"},
     "https://cryptopanic.com/news/rss": {"type": "AGGREGATOR", "domain": "cryptopanic.com"}
 }
+
+def parse_pub_date(pub_date_text):
+    """
+    Parses an RSS pubDate string (RFC 2822 format) into an ISO datetime string.
+    Falls back to datetime.now() if parsing fails.
+    Example input: 'Tue, 03 Mar 2026 09:30:00 +0000'
+    """
+    if not pub_date_text:
+        return str(datetime.now())
+    try:
+        # parsedate_to_datetime handles RFC 2822 format used by all RSS feeds
+        dt = parsedate_to_datetime(pub_date_text.strip())
+        # Normalise to UTC-naive ISO string for consistency
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
+    except Exception:
+        try:
+            # Fallback: attempt common format directly
+            return str(datetime.strptime(pub_date_text[:25].strip(), '%a, %d %b %Y %H:%M:%S'))
+        except Exception:
+            return str(datetime.now())
 
 def fetch_headlines():
     structured_news = []
@@ -45,20 +66,16 @@ def fetch_headlines():
                 pub_date = item.find("pubDate")
                 
                 if title is not None and title.text:
-                    # Convert pubDate to ISO format for news_engine
-                    # Standard RSS date: "Tue, 03 Mar 2026 09:30:00 +0000"
-                    ts = str(datetime.now()) # Fallback
-                    if pub_date is not None and pub_date.text:
-                        try:
-                            # Basic attempt to parse or just use now if complex
-                            ts = pub_date.text
-                        except: pass
-                        
+                    # FIX 1.1: Parse actual pubDate so temporal decay works correctly.
+                    # Old code overwrote every article's timestamp with datetime.now(),
+                    # making CARI decay formula always return 1.0 (no decay at all).
+                    ts = parse_pub_date(pub_date.text if pub_date is not None else None)
+
                     structured_news.append({
                         "text": title.text.strip(),
                         "source_type": config["type"],
                         "domain": config["domain"],
-                        "timestamp": str(datetime.now()) # Use system time (2026) for current "freshness"
+                        "timestamp": ts
                     })
                     
         except Exception as e:

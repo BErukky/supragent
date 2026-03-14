@@ -21,6 +21,15 @@ SCOPE_WEIGHTS = {
     "unknown": 0.5
 }
 
+# FIX 1.2: Explicit whitelist of L1/L2 chains for protocol-level detection.
+# Previously 'protocol' the English word triggered the same code path as
+# 'protocol' the chain-level severity — causing DeFi app news to be misclassified.
+PROTOCOL_CHAINS = [
+    "bitcoin", "ethereum", "solana", "avalanche", "polygon",
+    "btc", "eth", "sol", "xrp", "bnb", "ada", "dot",
+    "consensus", "validator", "mainnet halt", "chain halt", "hard fork"
+]
+
 # Base Risk Keywords
 KEYWORDS = {
     "CRITICAL": ["hack", "exploit", "halt", "locked", "insolvent", "bankruptcy", "vulnerability"],
@@ -30,16 +39,19 @@ KEYWORDS = {
 
 def classify_scope(headline):
     headline = headline.lower()
-    # Protocol level triggers
-    if any(x in headline for x in ["mainnet", "chain", "consensus", "validator", "halting", "fork"]):
+    # FIX 1.2: Protocol level is only triggered when a known L1/L2 chain
+    # is mentioned alongside a severity keyword. Previously the English word
+    # 'protocol' (e.g. 'Uniswap protocol update') was matching the hard-lock path.
+    severity_words = ["hack", "exploit", "halt", "bug", "vulnerability", "attack", "outage", "fork"]
+    has_severity = any(w in headline for w in severity_words)
+    if has_severity and any(chain in headline for chain in PROTOCOL_CHAINS):
         return "protocol"
     # Infrastructure triggers
     if any(x in headline for x in ["bridge", "rpc", "wallet", "ledger", "metamask", "custody"]):
         return "infrastructure"
-    # Application triggers
-    if any(x in headline for x in ["dapp", "dex", "swap", "protocol", "dao", "yield"]):
-        # Note: "protocol" can be ambiguous, default to application if it looks like a dApp
-        if any(x in headline for x in ["hack", "exploit"]): return "application"
+    # Application triggers (dApp / DeFi)
+    if any(x in headline for x in ["dapp", "dex", "swap", "dao", "yield", "defi", "uniswap", "aave", "compound"]):
+        return "application"
     return "unknown"
 
 def calculate_decay(news_time_str, lam=0.1):
@@ -100,14 +112,33 @@ def analyze_news_cari(news_items):
     # 6. Consensus Bonus (Boost based on independent domains)
     consensus_bonus = min(0.5, 0.15 * (len(domains) - 1)) if len(domains) > 1 else 0
     final_penalty = total_weighted_penalty * (1 + consensus_bonus)
+
+    # FIX 1.3: Calculate positive sentiment score.
+    # Previously KEYWORDS["POSITIVE"] was defined but never used — news could only
+    # reduce confidence, never increase it. Now we compute a positive boost that
+    # partially offsets the penalty and lifts the L4 score.
+    positive_boost = 0
+    for item in news_items:
+        headline_pos = item.get("text", "").lower()
+        if any(w in headline_pos for w in KEYWORDS["POSITIVE"]):
+            trust = SOURCES.get(item.get("source_type", "AGGREGATOR"), 0.4)
+            decay = calculate_decay(item.get("timestamp", str(datetime.now())))
+            positive_boost += 10 * trust * decay
+
+    # B2 Fix: Cap positive_boost to prevent deeply negative effective_penalty,
+    # which would inflate final confidence above 100% via proportional scaling.
+    positive_boost = min(30, positive_boost)
+
+    # Effective penalty is reduced by positive sentiment (floor at 0)
+    effective_penalty = max(0, final_penalty - positive_boost)
     
-    # 7. 3-State Logic
+    # 7. 3-State Logic (uses effective_penalty which accounts for positive sentiment)
     risk_state = "NORMAL"
-    if final_penalty >= 75: 
+    if effective_penalty >= 75:
         risk_state = "CRITICAL"
-    elif final_penalty >= 35: 
+    elif effective_penalty >= 35:
         risk_state = "CAUTION"
-    elif final_penalty >= 15 and len(domains) < 2 and SOURCES.get(news_items[0].get("source_type", "AGGREGATOR"), 0.4) < 0.5:
+    elif effective_penalty >= 15 and len(domains) < 2 and SOURCES.get(news_items[0].get("source_type", "AGGREGATOR"), 0.4) < 0.5:
         risk_state = "WAIT_VERIFICATION"
 
     # 8. Metadata for Governance
@@ -119,16 +150,22 @@ def analyze_news_cari(news_items):
         trusted_items = [SOURCES.get(item.get("source_type", "AGGREGATOR"), 0.4) for item in news_items if any(w in item.get("text", "").lower() for w in KEYWORDS["CRITICAL"] + KEYWORDS["NEGATIVE"])]
         if trusted_items: max_trust = max(trusted_items)
 
+    # L4 score: ranges 0-10.
+    # FIX 1.3: Now symmetric — positive news can raise score above 5, negative lowers it.
+    # Base is 5.0, effective_penalty pulls it down, positive_boost lifts it (max 10).
+    l4_score = round(max(0, min(10, 5.0 + (positive_boost / 10.0) - (effective_penalty / 10.0))), 2)
+
     return {
         "risk_state": risk_state,
-        "final_penalty": round(min(100, final_penalty), 2),
+        "final_penalty": round(min(100, effective_penalty), 2),
+        "positive_boost": round(positive_boost, 2),
         "consensus_count": len(domains),
         "permits_trade": risk_state != "CRITICAL",
         "highest_scope": highest_scope,
         "max_trust": max_trust,
         "details": results,
-        "layer4_score": round(max(0, 10 - (final_penalty / 10.0)), 2),
-        "reasoning": f"Risk: {risk_state}. Penalty: {round(final_penalty, 1)}. Consensus: {len(domains)} (Domains: {', '.join(list(domains)[:3])})"
+        "layer4_score": l4_score,
+        "reasoning": f"Risk: {risk_state}. Penalty: {round(effective_penalty, 1)} (Positive Boost: {round(positive_boost, 1)}). Consensus: {len(domains)} (Domains: {', '.join(list(domains)[:3])})"
     }
 
 def run_news_analysis(news_items):

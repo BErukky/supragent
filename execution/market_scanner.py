@@ -16,8 +16,39 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 try:
     from main import run_full_analysis
 except ImportError:
-    # Fallback if run from root
     from main import run_full_analysis
+
+# C3: Scan history for deduplication — prevents re-alerting within 60 minutes
+_SCAN_HISTORY_FILE = ".tmp/scan_history.json"
+_SCAN_COOLDOWN = 3600  # seconds
+
+
+def _load_scan_history() -> dict:
+    """Returns {symbol: last_alert_timestamp} from disk."""
+    try:
+        if os.path.exists(_SCAN_HISTORY_FILE):
+            with open(_SCAN_HISTORY_FILE, "r") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+
+def _save_scan_history(history: dict):
+    """Persists scan history to disk."""
+    try:
+        os.makedirs(".tmp", exist_ok=True)
+        with open(_SCAN_HISTORY_FILE, "w") as f:
+            json.dump(history, f)
+    except Exception:
+        pass
+
+
+def _already_alerted(symbol: str, history: dict) -> bool:
+    """Returns True if symbol was alerted within the cooldown window."""
+    last_ts = history.get(symbol, 0)
+    return (time.time() - last_ts) < _SCAN_COOLDOWN
+
 
 def run_technical_filter(symbol):
     """
@@ -40,6 +71,7 @@ def main():
 
     hits = []
     total = len(ASSETS)
+    scan_history = _load_scan_history()
     
     for i, symbol in enumerate(ASSETS):
         # 1. Technical Pulse Update
@@ -67,7 +99,7 @@ def main():
             conf = report.get("CONFIDENCE", 0)
             signal = report.get("FINAL_SIGNAL", "WAIT")
             
-            # High Confidence Hit (>= 75) - Now including CAUTION signals
+            # High Confidence Hit (>= 70) - Now including CAUTION signals
             is_blocked = "WAIT / NO_TRADE" in signal or "CRITICAL" in signal
             
             if conf >= 70 and not is_blocked:
@@ -90,10 +122,19 @@ def main():
         for hit in hits:
             rep = hit['report']
             risk = rep.get("RISK_ADVISORY", {})
+            
+            # C3: Skip if already alerted within cooldown window
+            if _already_alerted(hit['symbol'], scan_history):
+                print(f"[=] {hit['symbol']}: Skipping alert (already sent within 60 min)")
+                continue
+
             msg = f"🎯 *MARKET HIT: {hit['symbol']}* 🎯\n\n*Signal:* `{hit['signal']}`\n*Confidence:* {hit['confidence']}/100\n\n*Analysis:* Actionable Opportunity Found."
             if risk:
                 msg += f"\n*SL:* `{risk.get('STOP_LOSS')}`\n*TP:* `{risk.get('TAKE_PROFIT', ['N/A'])[0]}`"
             send_telegram_alert(msg)
+            scan_history[hit['symbol']] = time.time()
+
+        _save_scan_history(scan_history)
 
 if __name__ == "__main__":
     main()

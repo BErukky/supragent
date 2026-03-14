@@ -1,0 +1,9 @@
+{
+  "account_balance": 60.0,
+  "risk_per_trade_pct": 20.0,
+  "daily_drawdown_limit": 50.0,
+  "monitor_interval": 300,
+  "daily_start_balance": 60.0,
+  "daily_realized_pnl": 0.0,
+  "daily_date": "2026-03-14"
+}
