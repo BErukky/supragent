@@ -1,17 +1,18 @@
-# 🛠️ Execution Engines (v2.0)
+# 🛠️ Execution Engines (v2.1)
 
-This directory contains the core analytical logic for each intelligence layer of the **Super Signals v2.0** system.
+This directory contains the core analytical logic for each intelligence layer of the **Super Signals v2.1** system.
 
 ## 📁 Engine List
 
-| Script                     | Responsibility                                                                               | Key v2.0 Feature                    |
-| :------------------------- | :------------------------------------------------------------------------------------------- | :---------------------------------- |
-| **`market_data.py`**       | Fetches live real-time OHLCV data from **yfinance**.                                         | Live Connectivity                   |
-| **`structure_engine.py`**  | Detects fractal swings and liquidity levels.                                                 | **Numeric Swing Clarity** (0-1.0)   |
-| **`confluence_engine.py`** | Coordinates multi-timeframe alignment.                                                       | **Trend Coherence Score**           |
-| **`historical_engine.py`** | Finds pattern analogs in history.                                                            | **Probabilistic matching**          |
-| **`news_scraper.py`**      | Automatically fetches live headlines from CoinDesk, CoinTelegraph, etc.                      | **Autonomous Intelligence**         |
-| **`news_engine.py`**       | Analyzes sentiment and risk impact.                                                          | **Reaction & Penalty Assimilation** |
+| Script                     | Responsibility                                                                             | Key Feature / Integration           |
+| :------------------------- | :----------------------------------------------------------------------------------------- | :---------------------------------- |
+| **`market_data.py`**       | Fetches live OHLCV data from **Twelve Data, Alpha Vantage, and OANDA**.                    | Multi-Source Data Chain             |
+| **`structure_engine.py`**  | Detects fractal swings and liquidity levels.                                               | **Numeric Swing Clarity** (0-1.0)   |
+| **`confluence_engine.py`** | Coordinates multi-timeframe alignment.                                                     | **Trend Coherence Score**           |
+| **`historical_engine.py`** | Finds pattern analogs in history.                                                          | **Probabilistic matching**          |
+| **`news_scraper.py`**      | Automatically fetches live headlines from CoinDesk, CoinTelegraph, etc.                    | **Autonomous Intelligence**         |
+| **`news_engine.py`**       | Analyzes sentiment and risk impact.                                                        | **Reaction & Penalty Assimilation** |
+| **`nlp_engine.py`**        | Generates AI-powered summaries of every signal via Groq Llama-3.                           | **AI Insight Generation**           |
 | **`report_engine.py`**     | Integrates all layers into a governed final score. Saves predictions to **Prediction Logs**. | **Aggregation & Feedback Loop**     |
 
 ## ⚙️ v2.0 Data Flow

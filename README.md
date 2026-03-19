@@ -1,6 +1,6 @@
 # 🌌 Super Signals v2.1: Precision Market Intelligence
 
-Super Signals is a high-precision, non-executing analytical framework designed for cryptocurrency trading research. It utilizes an upgraded **5-Layer Intelligence Engine** with **v2.1 Precision Governance** to convert raw market data into institutional-grade decision intelligence.
+Super Signals is a high-precision, non-executing analytical framework designed for cryptocurrency and forex trading research. It utilizes an upgraded **5-Layer Intelligence Engine** with **v2.1 Precision Governance** to convert raw market data into institutional-grade decision intelligence.
 
 ---
 
@@ -13,6 +13,8 @@ The system analyzes the market through a series of numeric, weighted filters to 
 3.  **⏳ Layer 3: Probabilistic Similarity**: Uses Euclidean pattern matching to find historical analogs and calculates a **Probability %** of success based on past returns.
 4.  **🗞️ Layer 4: Context-Aware Risk Intelligence (CARI)**: Automatically scrapes **CoinDesk, CoinTelegraph, and CryptoPanic**. It applies **Source-Weighted Penalties** for high-impact negative events.
 5.  **⚖️ Layer 5: Precision Governance**: Aggregates all weights using **Proportional Scaling** and outputs automated **Robust TP/SL advisory levels**.
+
+**✨ Phase 12+: NLP Intelligence (Groq)**: Automatically generates a concise, 2-3 sentence AI summary for every signal using the Llama-3.1-8b-instant model on Groq.
 
 ---
 

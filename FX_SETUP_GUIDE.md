@@ -56,10 +56,10 @@ TWELVEDATA_API_KEY=your_api_key_here
 
 The system will try data sources in this order for forex:
 
-1. **OANDA** (if configured) - Real-time, unlimited
-2. **Twelve Data** (if configured) - 800 calls/day limit
-3. **Alpha Vantage** (daily only) - Already configured
-4. **yfinance** (30-60 min delay) - Fallback
+1. **OANDA** (Optional) - Real-time, unlimited (requires region-supported account)
+2. **Twelve Data** (Recommended) - 800 calls/day limit (Global, Free)
+3. **Alpha Vantage** (Daily only) - Configured as backup
+4. **yfinance** (30-60 min delay) - Final Fallback
 
 ---
 

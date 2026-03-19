@@ -1249,5 +1249,14 @@
     "entry_price": 5019.6216,
     "snapshot_close": 5019.6216,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-03-19 12:34:59.376979",
+    "symbol": "EUR/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.1488,
+    "snapshot_close": 1.1488,
+    "outcome_checked": false
   }
 ]

@@ -16,14 +16,16 @@ Super Signals operates on a 5-layer system designed for maximum objectivity.
 
 ### Layer 2: Multi-Timeframe Confluence
 
-- **Purpose**: Coherence check.
-- **Upgrade**: **Trend Coherence Score**. Measures alignment between HTF (1h) and LTF (15m).
-- **Confidence Logic**: 1.0 = Perfect alignment. <0.5 = Conflict/Transition.
+- **Purpose**: Coherent trend alignment.
+- **Upgrade**: **Trend Coherence Score**. Measures alignment between HTF (4h/1h) and LTF (15m).
+- **Confidence Logic**: 1.0 = Perfect alignment. 0.0 = High conflict/No confluence.
+- **Phase 8.1 Gate**: Action is forced to `WAIT` if `Layer1 + Layer2 < 25`.
 
 ### Layer 3: Historical Pattern Similarity
 
 - **Purpose**: Statistical context.
-- **Upgrade**: **Probabilistic Matching**. Returns returns results based on Euclidean distance analogs.
+- **Upgrade**: **Probabilistic Matching**. Returns results based on Euclidean distance analogs.
+- **Alignment Rule**: Historical bias must align with structural bias, or Layer 3 score is penalized.
 
 ### Layer 4: Context-Aware Risk Intelligence (CARI)
 
@@ -37,17 +39,16 @@ Super Signals operates on a 5-layer system designed for maximum objectivity.
 ### Layer 5: Precision Governance
 
 - **Proportional Aggregation**: `FinalConfidence = BaseConfidence * (1 - RiskPenalty / 100)`.
-- **Risk Hardening**: Mandatory fallback buffers ensure stability if structure is too tight:
-  - **Stop Loss**: Entry ± 0.3%.
-  - **Take Profit 1**: Entry ± 0.6%.
-  - **Take Profit 2**: Entry ± 1.2%.
+- **Risk Hardening**: Dynamic limit entries at FVG/OB zones with micro-invalidation stops.
+- **R:R Gate**: Minimum 1.5:1 reward-to-risk ratio required to issue a signal.
 - **Feedback Loop**: Every prediction is logged to `.tmp/prediction_logs.json` for drift analysis.
 
 ---
 
 ## 3. Governance Decision Logic (Hard Rules)
 
-- **Wait State**: Mandatory if `risk_state == "CRITICAL"` or `Confidence < 70`.
+- **Force WAIT**: Triggered if `L1 score < 10`, `L1+L2 < 25`, or `ADX == RANGING`.
+- **Hard LOCKED**: Triggered if `risk_state == "CRITICAL"`.
 - **Actionable Threshold**: `LONG_BIAS` or `SHORT_BIAS` only issued if `Confidence >= 70`.
 
 ---
