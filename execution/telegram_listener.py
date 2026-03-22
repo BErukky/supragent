@@ -15,7 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.dirname(__file__))
 
 try:
-    from main import run_full_analysis, TF_STACKS
+    from main import run_full_analysis, TF_STACKS, SYMBOL_YF_MAP
     import market_scanner
     from multi_stack_analyzer import run_multi_stack_analysis
     from nlp_engine import generate_nlp_summary
@@ -41,7 +41,7 @@ def log(level: str, event: str, **kwargs):
 
 # ─── Rate Limiting ────────────────────────────────────────────────────────────
 _COOLDOWNS: dict = {}
-_RATE_LIMITS = {"analyze": 60, "scan": 300, "scalp": 120, "default": 5}
+_RATE_LIMITS = {"analyze": 30, "scan": 300, "scalp": 120, "default": 5}
 _COOLDOWN_LOCK = threading.Lock()
 
 def check_rate_limit(chat_id: int, command_group: str) -> int:
@@ -66,6 +66,17 @@ if not BOT_TOKEN:
     sys.exit(1)
 
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+def is_fx_pair(symbol: str) -> bool:
+    """True if symbol is a Forex pair (ends with =X in yfinance)."""
+    yf_ticker = SYMBOL_YF_MAP.get(symbol, "")
+    return yf_ticker.endswith("=X")
+
+def is_weekend() -> bool:
+    """True if today is Saturday (5) or Sunday (6)."""
+    return datetime.now().weekday() >= 5
 
 # ─── Last signal cache for inline trade registration ──────────────────────────
 _LAST_SIGNAL: dict = {}   # {chat_id: {symbol, report}}
@@ -346,6 +357,16 @@ def _handle_analyze(chat_id, args):
 
     send_message(chat_id, f"🔬 *Analyzing {symbol}* `[{stack_arg}]`...")
 
+    # Weekend FX Gate
+    if is_fx_pair(symbol) and is_weekend():
+        msg = (
+            "⚪ *Forex Market Closed*\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            "No analysis during weekends. FX analysis resumes on Monday."
+        )
+        send_message(chat_id, msg)
+        return
+
     try:
         # Phase 1: Fast tech pass (no news) to decide if news worth running
         pre_report = run_full_analysis(symbol, stack_name=stack_arg, no_news=True, use_nlp=False)
@@ -394,6 +415,16 @@ def _handle_scalp(chat_id, args):
         return
 
     send_message(chat_id, f"⚡ *AI Multi-Stack Scalp Analysis: {symbol}*\nRunning all scalp timeframes...")
+
+    # Weekend FX Gate
+    if is_fx_pair(symbol) and is_weekend():
+        msg = (
+            "⚪ *Forex Market Closed*\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            "No analysis during weekends. FX analysis resumes on Monday."
+        )
+        send_message(chat_id, msg)
+        return
 
     try:
         # Use smart news: run without first, AI ranks, then decide on news per confidence
