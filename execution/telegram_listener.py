@@ -55,16 +55,9 @@ def check_rate_limit(chat_id: int, command_group: str) -> int:
     return 0
 
 # ─── Environment ──────────────────────────────────────────────────────────────
-def load_env():
-    env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
-    if os.path.exists(env_path):
-        with open(env_path, "r") as f:
-            for line in f:
-                if "=" in line and not line.strip().startswith("#"):
-                    k, v = line.strip().split("=", 1)
-                    os.environ[k] = v
+from dotenv import load_dotenv, find_dotenv
 
-load_env()
+load_dotenv(find_dotenv())
 BOT_TOKEN       = os.getenv("TELEGRAM_BOT_TOKEN")
 ALLOWED_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 

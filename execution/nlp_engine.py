@@ -74,7 +74,16 @@ def generate_nlp_summary(report: dict, symbol: str = None) -> str:
         if now - entry["ts"] < _NLP_CACHE_TTL:
             return entry["text"]
 
-    api_key = os.environ.get("GROQ_API_KEY")
+    from dotenv import load_dotenv, find_dotenv
+    load_dotenv(find_dotenv())
+
+    # Priority: GROQ_API_KEY > GROQ_AI_KEY > GROQAPIKEY
+    api_key = (
+        os.environ.get("GROQ_API_KEY") or 
+        os.environ.get("GROQ_AI_KEY") or 
+        os.environ.get("GROQAPIKEY")
+    )
+    
     if not api_key:
         return "[NLP Engine Offline: GROQ_API_KEY missing]"
 

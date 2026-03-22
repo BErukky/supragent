@@ -15,6 +15,9 @@ import json
 import sys
 import os
 import pandas as pd
+from dotenv import load_dotenv, find_dotenv
+
+load_dotenv(find_dotenv())
 
 # Ensure we can import from the execution directory
 sys.path.append(os.path.join(os.path.dirname(__file__), 'execution'))
