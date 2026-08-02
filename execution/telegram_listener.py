@@ -462,9 +462,10 @@ def _handle_scalp(chat_id, args):
             log("INFO", "scalp_complete", chat_id=chat_id, symbol=symbol, stack=best_stack)
 
         except BaseException as e:
-            err_msg = f"⚠️ Scalp analysis failed: {str(e)}"
-            send_message(chat_id, err_msg)
-            log("ERROR", "scalp_exception", chat_id=chat_id, symbol=symbol, error=str(e), traceback=traceback.format_exc())
+            tb_text = traceback.format_exc()
+            print(tb_text, file=sys.stderr)
+            send_message(chat_id, "⚠️ Scalp analysis failed — check logs")
+            log("ERROR", "scalp_exception", chat_id=chat_id, symbol=symbol, error=repr(e), traceback=tb_text)
 
     threading.Thread(target=_run_scalp_work, daemon=True).start()
 
@@ -620,9 +621,10 @@ def process_command(chat_id, command, args):
                 market_scanner.main()
                 send_message(chat_id, "✅ *Scan complete.* All alerts sent.")
             except BaseException as e:
-                err_msg = f"⚠️ Scan analysis failed: {str(e)}"
-                send_message(chat_id, err_msg)
-                log("ERROR", "scan_exception", chat_id=chat_id, error=str(e), traceback=traceback.format_exc())
+                tb_text = traceback.format_exc()
+                print(tb_text, file=sys.stderr)
+                send_message(chat_id, "⚠️ Scan analysis failed — check logs")
+                log("ERROR", "scan_exception", chat_id=chat_id, error=repr(e), traceback=tb_text)
 
         threading.Thread(target=_run_scan_work, daemon=True).start()
 
