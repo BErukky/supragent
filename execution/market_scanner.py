@@ -3,6 +3,7 @@ import json
 import sys
 import os
 import time
+import traceback
 from concurrent.futures import ThreadPoolExecutor
 from telegram_bot import send_telegram_alert
 
@@ -130,8 +131,9 @@ def main():
         for future in futures:
             try:
                 result = future.result()
-            except Exception as exc:
-                print(f"[-] Scan error: {exc}")
+            except BaseException as exc:
+                print(f"[-] Scan worker exception: {exc}")
+                traceback.print_exc()
                 continue
             if result is not None:
                 ordered_results[result["index"]] = result

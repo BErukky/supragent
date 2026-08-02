@@ -9,6 +9,7 @@ import sys
 import json
 import threading
 import logging
+import traceback
 from datetime import datetime
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -460,9 +461,10 @@ def _handle_scalp(chat_id, args):
             send_message(chat_id, panel, reply_markup=_took_trade_keyboard())
             log("INFO", "scalp_complete", chat_id=chat_id, symbol=symbol, stack=best_stack)
 
-        except Exception as e:
-            send_message(chat_id, f"⚠️ Analysis failed, please try again")
-            log("ERROR", "scalp_exception", chat_id=chat_id, symbol=symbol, error=str(e))
+        except BaseException as e:
+            err_msg = f"⚠️ Scalp analysis failed: {str(e)}"
+            send_message(chat_id, err_msg)
+            log("ERROR", "scalp_exception", chat_id=chat_id, symbol=symbol, error=str(e), traceback=traceback.format_exc())
 
     threading.Thread(target=_run_scalp_work, daemon=True).start()
 
@@ -612,11 +614,17 @@ def process_command(chat_id, command, args):
         no_news   = (cmd == "/scan_tech")
         stack_arg = args[0].lower() if args else "intraday"
         send_message(chat_id, f"🔍 *Market Scan* `[{stack_arg}]` starting...")
-        try:
-            market_scanner.main()
-            send_message(chat_id, "✅ *Scan complete.* All alerts sent.")
-        except Exception as e:
-            send_message(chat_id, f"❌ Scan error: `{str(e)}`")
+
+        def _run_scan_work():
+            try:
+                market_scanner.main()
+                send_message(chat_id, "✅ *Scan complete.* All alerts sent.")
+            except BaseException as e:
+                err_msg = f"⚠️ Scan analysis failed: {str(e)}"
+                send_message(chat_id, err_msg)
+                log("ERROR", "scan_exception", chat_id=chat_id, error=str(e), traceback=traceback.format_exc())
+
+        threading.Thread(target=_run_scan_work, daemon=True).start()
 
     # ── Trade tracker commands ─────────────────────────────────────────────────
     elif cmd == "/took":

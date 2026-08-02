@@ -120,6 +120,8 @@ def run_multi_stack_analysis(symbol, use_nlp=False, no_news=False):
                 results.append({'stack': stack_name, 'report': report})
         except Exception as e:
             print(f"  Error: {e}")
+            import traceback
+            traceback.print_exc()
     
     if not results:
         return {"error": "All stacks failed"}

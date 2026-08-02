@@ -1258,5 +1258,203 @@
     "entry_price": 1.1488,
     "snapshot_close": 1.1488,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:18:07.215057",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 58.25,
+    "entry_price": 63547.11,
+    "snapshot_close": 63547.11,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:18:23.837865",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 50.56,
+    "entry_price": 1853.91,
+    "snapshot_close": 1853.91,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:18:25.295491",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 0.189849,
+    "snapshot_close": 0.189849,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:18:33.506653",
+    "symbol": "SOL/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 73.03,
+    "snapshot_close": 73.03,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:18:44.229820",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.07882,
+    "snapshot_close": 1.07882,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:19:36.770720",
+    "symbol": "LTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 44.78,
+    "snapshot_close": 44.78,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:19:38.603258",
+    "symbol": "DOGE/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 0.0711396,
+    "snapshot_close": 0.0711396,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:19:38.998062",
+    "symbol": "DOT/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 0.7981,
+    "snapshot_close": 0.7981,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:19:51.623825",
+    "symbol": "LINK/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 8.30103,
+    "snapshot_close": 8.30103,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:37:55.858403",
+    "symbol": "SOL/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 73.03,
+    "snapshot_close": 73.03,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:37:56.620291",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 62.56,
+    "entry_price": 1853.91,
+    "snapshot_close": 1853.91,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:37:56.760916",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 49.42,
+    "entry_price": 63547.11,
+    "snapshot_close": 63547.11,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:37:57.563359",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 54.08,
+    "entry_price": 72.62999725341797,
+    "snapshot_close": 72.62999725341797,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:38:10.077850",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 53.5,
+    "entry_price": 63447.99,
+    "snapshot_close": 63447.99,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:38:12.657353",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 56.97,
+    "entry_price": 0.189849,
+    "snapshot_close": 0.189849,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:38:18.899053",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.08154,
+    "snapshot_close": 1.08154,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:38:25.188427",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 46.55,
+    "entry_price": 63547.11,
+    "snapshot_close": 63547.11,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:38:36.333264",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 44.42,
+    "entry_price": 63547.11,
+    "snapshot_close": 63547.11,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:38:42.877174",
+    "symbol": "DOT/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 0.7981,
+    "snapshot_close": 0.7981,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:38:59.556537",
+    "symbol": "LTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 44.78,
+    "snapshot_close": 44.78,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:39:02.246886",
+    "symbol": "DOGE/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 0.0711396,
+    "snapshot_close": 0.0711396,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-02 21:39:06.452696",
+    "symbol": "LINK/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 8.30103,
+    "snapshot_close": 8.30103,
+    "outcome_checked": false
   }
 ]
