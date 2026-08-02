@@ -355,7 +355,7 @@ def _handle_analyze(chat_id, args):
         send_message(chat_id, reason)
         return
 
-    send_message(chat_id, f"🔬 *Analyzing {symbol}* `[{stack_arg}]`...")
+    send_message(chat_id, f"⏳ Analyzing {symbol}...")
 
     # Weekend FX Gate
     if is_fx_pair(symbol) and is_weekend():
@@ -367,34 +367,37 @@ def _handle_analyze(chat_id, args):
         send_message(chat_id, msg)
         return
 
-    try:
-        # Phase 1: Fast tech pass (no news) to decide if news worth running
-        pre_report = run_full_analysis(symbol, stack_name=stack_arg, no_news=True, use_nlp=False)
-        pre_conf   = (pre_report or {}).get("CONFIDENCE", 0)
-        l2_str     = ((pre_report or {}).get("REASONING") or {}).get("l2_confluence", "")
-        run_news   = _should_run_news(pre_conf, l2_str)
+    def _run_analysis_work():
+        try:
+            # Phase 1: Fast tech pass (no news) to decide if news worth running
+            pre_report = run_full_analysis(symbol, stack_name=stack_arg, no_news=True, use_nlp=False)
+            pre_conf   = (pre_report or {}).get("CONFIDENCE", 0)
+            l2_str     = ((pre_report or {}).get("REASONING") or {}).get("l2_confluence", "")
+            run_news   = _should_run_news(pre_conf, l2_str)
 
-        # Phase 2: Full analysis (with or without news)
-        report = run_full_analysis(symbol, stack_name=stack_arg, no_news=not run_news, use_nlp=False)
-        if not report or "error" in report:
-            send_message(chat_id, f"❌ Analysis failed for {symbol}.")
-            return
+            # Phase 2: Full analysis (with or without news)
+            report = run_full_analysis(symbol, stack_name=stack_arg, no_news=not run_news, use_nlp=False)
+            if not report or "error" in report:
+                send_message(chat_id, f"⚠️ Analysis failed, please try again")
+                return
 
-        # Always generate NLP
-        report["NLP_SUMMARY"] = generate_nlp_summary(report, symbol)
+            # Always generate NLP
+            report["NLP_SUMMARY"] = generate_nlp_summary(report, symbol)
 
-        panel = format_signal_panel(symbol, report, stack_label=stack_arg.upper())
-        _LAST_SIGNAL[chat_id] = {
-            "symbol": symbol, "report": report,
-            "stack": stack_arg, "ts": time.time()
-        }
-        send_message(chat_id, panel, reply_markup=_took_trade_keyboard())
-        log("INFO", "analyze_complete", chat_id=chat_id, symbol=symbol,
-            signal=report.get("FINAL_SIGNAL"), conf=report.get("CONFIDENCE"), news=run_news)
+            panel = format_signal_panel(symbol, report, stack_label=stack_arg.upper())
+            _LAST_SIGNAL[chat_id] = {
+                "symbol": symbol, "report": report,
+                "stack": stack_arg, "ts": time.time()
+            }
+            send_message(chat_id, panel, reply_markup=_took_trade_keyboard())
+            log("INFO", "analyze_complete", chat_id=chat_id, symbol=symbol,
+                signal=report.get("FINAL_SIGNAL"), conf=report.get("CONFIDENCE"), news=run_news)
 
-    except Exception as e:
-        send_message(chat_id, f"❌ Execution Error: `{str(e)}`")
-        log("ERROR", "analyze_exception", chat_id=chat_id, symbol=symbol, error=str(e))
+        except Exception as e:
+            send_message(chat_id, f"⚠️ Analysis failed, please try again")
+            log("ERROR", "analyze_exception", chat_id=chat_id, symbol=symbol, error=str(e))
+
+    threading.Thread(target=_run_analysis_work, daemon=True).start()
 
 
 def _handle_scalp(chat_id, args):
@@ -414,7 +417,7 @@ def _handle_scalp(chat_id, args):
         send_message(chat_id, reason)
         return
 
-    send_message(chat_id, f"⚡ *AI Multi-Stack Scalp Analysis: {symbol}*\nRunning all scalp timeframes...")
+    send_message(chat_id, f"⏳ Scalp analysis for {symbol} is running...")
 
     # Weekend FX Gate
     if is_fx_pair(symbol) and is_weekend():
@@ -426,39 +429,42 @@ def _handle_scalp(chat_id, args):
         send_message(chat_id, msg)
         return
 
-    try:
-        # Use smart news: run without first, AI ranks, then decide on news per confidence
-        result = run_multi_stack_analysis(symbol, use_nlp=False, no_news=True)
+    def _run_scalp_work():
+        try:
+            # Use smart news: run without first, AI ranks, then decide on news per confidence
+            result = run_multi_stack_analysis(symbol, use_nlp=False, no_news=True)
 
-        if "error" in result or not result.get("top_setups"):
-            send_message(chat_id, f"❌ No valid setups found for {symbol}.")
-            return
+            if "error" in result or not result.get("top_setups"):
+                send_message(chat_id, f"⚠️ Analysis failed, please try again")
+                return
 
-        best        = result["top_setups"][0]
-        best_stack  = best.get("stack", "?").upper()
-        best_report = best["report"]
+            best        = result["top_setups"][0]
+            best_stack  = best.get("stack", "?").upper()
+            best_report = best["report"]
 
-        # Smart news on the best setup
-        pre_conf = best_report.get("CONFIDENCE", 0)
-        l2_str   = (best_report.get("REASONING") or {}).get("l2_confluence", "")
-        if _should_run_news(pre_conf, l2_str):
-            best_report = run_full_analysis(symbol, stack_name=best.get("stack"), no_news=False, use_nlp=False) or best_report
+            # Smart news on the best setup
+            pre_conf = best_report.get("CONFIDENCE", 0)
+            l2_str   = (best_report.get("REASONING") or {}).get("l2_confluence", "")
+            if _should_run_news(pre_conf, l2_str):
+                best_report = run_full_analysis(symbol, stack_name=best.get("stack"), no_news=False, use_nlp=False) or best_report
 
-        # Always generate NLP
-        best_report["NLP_SUMMARY"] = generate_nlp_summary(best_report, symbol)
+            # Always generate NLP
+            best_report["NLP_SUMMARY"] = generate_nlp_summary(best_report, symbol)
 
-        label = f"{best_stack} [AI #{1} of {result['total_analyzed']} stacks]"
-        panel = format_signal_panel(symbol, best_report, stack_label=label)
-        _LAST_SIGNAL[chat_id] = {
-            "symbol": symbol, "report": best_report,
-            "stack": best.get("stack"), "ts": time.time()
-        }
-        send_message(chat_id, panel, reply_markup=_took_trade_keyboard())
-        log("INFO", "scalp_complete", chat_id=chat_id, symbol=symbol, stack=best_stack)
+            label = f"{best_stack} [AI #{1} of {result['total_analyzed']} stacks]"
+            panel = format_signal_panel(symbol, best_report, stack_label=label)
+            _LAST_SIGNAL[chat_id] = {
+                "symbol": symbol, "report": best_report,
+                "stack": best.get("stack"), "ts": time.time()
+            }
+            send_message(chat_id, panel, reply_markup=_took_trade_keyboard())
+            log("INFO", "scalp_complete", chat_id=chat_id, symbol=symbol, stack=best_stack)
 
-    except Exception as e:
-        send_message(chat_id, f"❌ Scalp Error: `{str(e)}`")
-        log("ERROR", "scalp_exception", chat_id=chat_id, symbol=symbol, error=str(e))
+        except Exception as e:
+            send_message(chat_id, f"⚠️ Analysis failed, please try again")
+            log("ERROR", "scalp_exception", chat_id=chat_id, symbol=symbol, error=str(e))
+
+    threading.Thread(target=_run_scalp_work, daemon=True).start()
 
 
 def _handle_took_trade(chat_id):

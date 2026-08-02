@@ -98,7 +98,8 @@ def generate_nlp_summary(report: dict, symbol: str = None) -> str:
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
-            max_tokens=150
+            max_tokens=150,
+            timeout=15
         )
         
         reply = completion.choices[0].message.content.strip()

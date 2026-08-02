@@ -7,7 +7,7 @@ def get_chat_id(token):
     print(f"Checking for messages on bot...")
     
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
         data = response.json()
         
         if not data.get("ok"):
