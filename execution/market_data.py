@@ -51,7 +51,7 @@ def validate_ohlc(df):
     """Validates OHLC data quality."""
     if len(df) < 50:
         return False, "Insufficient rows"
-    if df['close'].std() < df['close'].mean() * 0.001:
+    if df['close'].std() < df['close'].mean() * 0.0001:
         return False, "Flat data (no price movement)"
     if df[['open','high','low','close']].isna().any().any():
         return False, "Contains NaN values"
@@ -268,8 +268,7 @@ def fetch_data(symbol, timeframe, limit):
     
     # Final validation
     if df is None:
-        print(f"FATAL: All data sources failed for {symbol}")
-        sys.exit(1)
+        raise RuntimeError(f"All data sources failed for {symbol} {timeframe}")
     
     # Cache the result
     set_cached_data(cache_key, df)
@@ -290,7 +289,11 @@ def main():
     parser.add_argument('--limit', type=int, default=100, help='Limit')
     
     args = parser.parse_args()
-    fetch_data(args.symbol, args.timeframe, args.limit)
+    try:
+        fetch_data(args.symbol, args.timeframe, args.limit)
+    except RuntimeError as e:
+        print(f"FATAL: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
