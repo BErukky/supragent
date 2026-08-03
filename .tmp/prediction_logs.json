@@ -88,5 +88,77 @@
     "entry_price": 62959.62,
     "snapshot_close": 62959.62,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 01:54:01.340750",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 63535.18,
+    "snapshot_close": 63535.18,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 02:02:29.864353",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 63111.75,
+    "snapshot_close": 63111.75,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 02:02:47.556258",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 1880.18,
+    "snapshot_close": 1880.18,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 02:03:11.168661",
+    "symbol": "SOL/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 74.23,
+    "snapshot_close": 74.23,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 02:03:59.535033",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 1.08649,
+    "snapshot_close": 1.08649,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 02:04:37.013850",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 0.189518,
+    "snapshot_close": 0.189518,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 02:05:19.528450",
+    "symbol": "DOGE/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 0.0708279,
+    "snapshot_close": 0.0708279,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 02:05:59.211044",
+    "symbol": "DOT/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 0.7978,
+    "snapshot_close": 0.7978,
+    "outcome_checked": false
   }
 ]
