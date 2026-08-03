@@ -55,11 +55,15 @@ def validate_ohlc(df):
         return False, "Flat data (no price movement)"
     if df[['open','high','low','close']].isna().any().any():
         return False, "Contains NaN values"
+    # Use a relative tolerance of 0.01% to absorb float precision noise
+    # (e.g. yfinance forex daily: high=1.34560 vs close=1.34561 off by 0.00001)
+    # while still catching real violations (e.g. high genuinely below close by >0.01%)
+    tol = df['close'].mean() * 0.0001
     if not (df['high'] >= df['low']).all():
         return False, "Invalid OHLC logic"
-    if not (df['high'] >= df['open']).all() or not (df['high'] >= df['close']).all():
+    if not ((df['high'] + tol >= df['open']).all() and (df['high'] + tol >= df['close']).all()):
         return False, "High < Open/Close"
-    if not (df['low'] <= df['open']).all() or not (df['low'] <= df['close']).all():
+    if not ((df['low'] - tol <= df['open']).all() and (df['low'] - tol <= df['close']).all()):
         return False, "Low > Open/Close"
     return True, "Valid"
 
@@ -108,17 +112,15 @@ def fetch_via_twelvedata(symbol, timeframe, limit):
             return None
         
         import requests
-        url = f"https://api.twelvedata.com/time_series"
-        params = {
-            'symbol': pair,
-            'interval': interval,
-            'outputsize': limit,
-            'apikey': api_key,
-            'format': 'JSON'
-        }
-        
+        # Build URL manually — requests.get(params=...) encodes '/' as '%2F'
+        # which Twelve Data rejects with HTTP 404 for forex pairs like GBP/USD.
+        url = (
+            f"https://api.twelvedata.com/time_series"
+            f"?symbol={pair}&interval={interval}"
+            f"&outputsize={limit}&apikey={api_key}&format=JSON"
+        )
         print(f"  Trying Twelve Data: {pair} ({interval})")
-        resp = requests.get(url, params=params, timeout=10)
+        resp = requests.get(url, timeout=10)
         
         if resp.status_code == 200:
             data = resp.json()
@@ -170,15 +172,34 @@ def fetch_via_alphavantage(symbol, timeframe, limit):
             df.columns = df.columns.str.lower()
             df['timestamp'] = (pd.to_datetime(df['timestamp']).astype('int64') // 10**6).astype(int)
             df = df[['timestamp', 'open', 'high', 'low', 'close']]
-            df['volume'] = 0  # Forex doesn't have volume
-            df = df.tail(limit)
-            
+            df['volume'] = 0
+            # AV returns newest-first — sort ascending then take the most recent `limit` rows
+            df = df.sort_values('timestamp').tail(limit).reset_index(drop=True)
+
             valid, msg = validate_ohlc(df)
             if valid:
                 print(f"  Success: Alpha Vantage returned {len(df)} daily candles")
                 return df
             else:
                 print(f"  Alpha Vantage data invalid: {msg}")
+        elif resp.status_code == 200 and 'Note' in resp.text:
+            # Free tier rate limit hit — retry with compact (100 rows)
+            print(f"  Alpha Vantage: rate limit hit, retrying compact...")
+            url_compact = url.replace('outputsize=full', 'outputsize=compact')
+            resp2 = requests.get(url_compact, timeout=10)
+            if resp2.status_code == 200 and 'timestamp' in resp2.text:
+                df = pd.read_csv(pd.io.common.StringIO(resp2.text))
+                df.columns = df.columns.str.lower()
+                df['timestamp'] = (pd.to_datetime(df['timestamp']).astype('int64') // 10**6).astype(int)
+                df = df[['timestamp', 'open', 'high', 'low', 'close']]
+                df['volume'] = 0
+                df = df.sort_values('timestamp').tail(limit).reset_index(drop=True)
+                valid, msg = validate_ohlc(df)
+                if valid:
+                    print(f"  Success: Alpha Vantage (compact) returned {len(df)} daily candles")
+                    return df
+                else:
+                    print(f"  Alpha Vantage compact invalid: {msg}")
     except Exception as e:
         print(f"  Alpha Vantage failed: {e}")
     
