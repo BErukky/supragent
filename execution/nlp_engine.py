@@ -43,19 +43,30 @@ def parse_report_to_prompt(report: dict, symbol: str = None) -> str:
     context += f" - {reasoning.get('l2_confluence', 'No TF data')}\n"
     context += f" - {reasoning.get('l3_history', 'No historic data')}\n"
     context += f" - {reasoning.get('l4_news', 'No sentiment data')}\n"
-    
-    if risk_info and risk_info.get("ENTRY_PRICE"):
+
+    is_wait_no_trade = "WAIT" in signal.upper() and "NO_TRADE" in signal.upper()
+
+    if risk_info and risk_info.get("ENTRY_PRICE") and not is_wait_no_trade:
         context += "\nPending Limit Order Details:\n"
         context += f" - Type: {risk_info.get('ENTRY_TYPE', 'N/A')} @ {risk_info.get('ENTRY_PRICE')}\n"
         context += f" - Invalidation Stop Loss: {risk_info.get('STOP_LOSS')}\n"
         tp = " | ".join(map(str, risk_info.get("TAKE_PROFIT", [])))
         context += f" - Projected Targets: {tp}\n"
         context += f" - Geometric R:R: {risk_info.get('RR_RATIO', 'N/A')}:1\n"
+    else:
+        context += "\nTrade Setup Details:\n"
+        context += " - Entry: not provided\n"
+        context += " - Stop Loss: not provided\n"
+        context += " - Take Profit 1: not provided\n"
+        context += " - Risk/Reward Ratio: not provided\n"
     
     context += (
         "\n--- END ---\n"
         "Output 2-3 sentences: WHY this decision? What's the key issue? What's the plan? "
-        "Be direct. No fluff. Use terms like 'ranging', 'confluence', 'invalidation', 'R:R'."
+        "Be direct. No fluff. Use terms like 'ranging', 'confluence', 'invalidation', 'R:R'. "
+        "Only reference numbers, values, and metrics that are explicitly provided in the data above. "
+        "Do not invent, assume, or estimate any figure (price, R:R ratio, percentage, etc.) that is not present in the input data. "
+        "If a value like R:R is not applicable (for example, for WAIT/NO_TRADE signals with no entry), do not mention any R:R ratio at all."
     )
     
     return context

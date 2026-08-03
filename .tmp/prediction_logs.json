@@ -160,5 +160,32 @@
     "entry_price": 0.7978,
     "snapshot_close": 0.7978,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 02:44:10.844993",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 78.62,
+    "entry_price": 1880.18,
+    "snapshot_close": 1880.18,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 02:45:32.307138",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 63.82,
+    "entry_price": 1880.18,
+    "snapshot_close": 1880.18,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 02:51:05.275442",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 63111.75,
+    "snapshot_close": 63111.75,
+    "outcome_checked": false
   }
 ]
