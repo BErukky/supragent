@@ -121,9 +121,14 @@ def fetch_via_twelvedata(symbol, timeframe, limit):
         )
         print(f"  Trying Twelve Data: {pair} ({interval})")
         resp = requests.get(url, timeout=10)
+        print(f"  Twelve Data HTTP {resp.status_code} | url_tail: ...{url[-60:]}")
+        if resp.status_code != 200:
+            print(f"  Twelve Data body: {resp.text[:200]}")
         
         if resp.status_code == 200:
             data = resp.json()
+            if 'message' in data:
+                print(f"  Twelve Data API error: {data['message']}")
             if 'values' in data:
                 values = data['values']
                 df = pd.DataFrame([{
@@ -166,6 +171,7 @@ def fetch_via_alphavantage(symbol, timeframe, limit):
         
         print(f"  Trying Alpha Vantage: {from_curr}/{to_curr} (daily)")
         resp = requests.get(url, timeout=10)
+        print(f"  Alpha Vantage HTTP {resp.status_code} | has_timestamp: {'timestamp' in resp.text} | has_Note: {'Note' in resp.text} | body[:150]: {resp.text[:150]}")
         
         if resp.status_code == 200 and 'timestamp' in resp.text:
             df = pd.read_csv(pd.io.common.StringIO(resp.text))
