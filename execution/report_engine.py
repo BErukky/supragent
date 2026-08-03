@@ -169,9 +169,6 @@ def calculate_v2_risk(action, str_data, news_penalty, external_data=None, symbol
     Transitioned from wide ATR stops at Market to Limit orders at specific
     discount zones (FVG/OB/Fib/VWAP) with micro-invalidation stops.
     """
-    if "LOCKED" in action:
-        return None
-
     if external_data is None:
         external_data = {}
 
