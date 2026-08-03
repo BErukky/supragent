@@ -268,15 +268,15 @@ def calculate_v2_risk(action, str_data, news_penalty, external_data=None, symbol
             tp1 = entry_price - max(0, (entry_price - base_tp1) * risk_multi)
             tp2 = entry_price - max(0, (entry_price - base_tp2) * risk_multi)
             tp3 = entry_price - max(0, (entry_price - base_tp3) * risk_multi)
-        tps = [round(tp1, 2), round(tp2, 2), round(tp3, 2)]
+        tps = [smart_round(tp1), smart_round(tp2), smart_round(tp3)]
     else:
         # Fallback R-mults if Fibs aren't drawn (3R, 6R, 10R)
         mults = [3.0, 6.0, 10.0]
         for m in mults:
             if is_long:
-                tps.append(round(entry_price + (risk_dist * m * risk_multi), 2))
+                tps.append(smart_round(entry_price + (risk_dist * m * risk_multi)))
             else:
-                tps.append(round(entry_price - (risk_dist * m * risk_multi), 2))
+                tps.append(smart_round(entry_price - (risk_dist * m * risk_multi)))
 
     # Phase 11.3 Runner Override: CME Gap
     # If a CME gap exists in our direction, override TP3 to target it
@@ -284,7 +284,7 @@ def calculate_v2_risk(action, str_data, news_penalty, external_data=None, symbol
     if cme_gap:
         gap_mid = (cme_gap['gap_high'] + cme_gap['gap_low']) / 2
         if (is_long and gap_mid > tps[1]) or (not is_long and gap_mid < tps[1]):
-            tps[2] = round(gap_mid, 2)
+            tps[2] = smart_round(gap_mid)
     
     # Calculate pips and risk %
     pip_data = calculate_pips(symbol, entry_price, sl_price, tps)
