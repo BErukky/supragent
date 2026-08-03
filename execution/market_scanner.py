@@ -52,20 +52,19 @@ def _already_alerted(symbol: str, history: dict) -> bool:
     return (time.time() - last_ts) < _SCAN_COOLDOWN
 
 
-def run_technical_filter(symbol):
+def run_technical_filter(symbol, stack_name="intraday"):
     """
     Runs a lightweight technical scan (Layer 1 + Layer 2 only).
     """
-    # Now calls the function directly instead of subprocess
-    return run_full_analysis(symbol, no_news=True)
+    return run_full_analysis(symbol, stack_name=stack_name, no_news=True)
 
 
-def _scan_symbol(symbol, no_news, delay_seconds, index):
+def _scan_symbol(symbol, no_news, delay_seconds, index, stack_name="intraday"):
     """Per-asset scan worker for the parallel scanner."""
     if delay_seconds > 0:
         time.sleep(delay_seconds)
 
-    tech_report = run_technical_filter(symbol)
+    tech_report = run_technical_filter(symbol, stack_name=stack_name)
     if not tech_report:
         return {"index": index, "symbol": symbol, "hit": False, "skipped": False}
 
@@ -77,7 +76,7 @@ def _scan_symbol(symbol, no_news, delay_seconds, index):
         return {"index": index, "symbol": symbol, "hit": False, "skipped": True}
 
     print(f"[+] {symbol}: satisfying Technicals ({conf}%). Running CARI/History...")
-    report = run_full_analysis(symbol, no_news=no_news)
+    report = run_full_analysis(symbol, stack_name=stack_name, no_news=no_news)
 
     if not report:
         return {"index": index, "symbol": symbol, "hit": False, "skipped": False}
@@ -100,16 +99,21 @@ def _scan_symbol(symbol, no_news, delay_seconds, index):
     return {"index": index, "symbol": symbol, "hit": False, "skipped": False}
 
 
-def main():
+def main(stack="intraday", no_news=False):
     import argparse
-    parser = argparse.ArgumentParser(description='Multi-Asset Scanner v2.1 (Tiered & OOM Optimized)')
-    parser.add_argument('--no_news', action='store_true', help='Skip news analysis entirely')
-    args = parser.parse_args()
+
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser(description='Multi-Asset Scanner v2.1 (Tiered & OOM Optimized)')
+        parser.add_argument('--stack', default='intraday', help='Analysis stack to run')
+        parser.add_argument('--no_news', action='store_true', help='Skip news analysis entirely')
+        args = parser.parse_args()
+        stack = args.stack
+        no_news = args.no_news
 
     print("="*60)
     print("SUPER SIGNALS v2.1: OOM-OPTIMIZED MARKET SCANNER")
-    print(f"Time: {time.ctime()} | Mode: {'Fast-Tech' if args.no_news else 'Adaptive Scan'}")
-    print(f"Scanning {len(ASSETS)} assets...")
+    print(f"Time: {time.ctime()} | Mode: {'Fast-Tech' if no_news else 'Adaptive Scan'}")
+    print(f"Stack: {stack} | Assets: {len(ASSETS)}")
     print("="*60 + "\n")
 
     hits = []
@@ -125,7 +129,7 @@ def main():
             if i > 0 and i % 3 == 0:
                 send_telegram_alert(f"📡 *Scan Pulse*: Processed {i}/{total} assets. Continuing deep dive...")
 
-            futures.append(executor.submit(_scan_symbol, symbol, args.no_news, delay_seconds, i))
+            futures.append(executor.submit(_scan_symbol, symbol, no_news, delay_seconds, i, stack_name=stack))
 
         ordered_results = [None] * len(ASSETS)
         for future in futures:

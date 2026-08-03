@@ -618,7 +618,7 @@ def process_command(chat_id, command, args):
 
         def _run_scan_work():
             try:
-                market_scanner.main()
+                market_scanner.main(stack=stack_arg, no_news=no_news)
                 send_message(chat_id, "✅ *Scan complete.* All alerts sent.")
             except BaseException as e:
                 tb_text = traceback.format_exc()
