@@ -187,5 +187,23 @@
     "entry_price": 63111.75,
     "snapshot_close": 63111.75,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 10:41:18.649104",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 47.71,
+    "entry_price": 1.34778,
+    "snapshot_close": 1.34778,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-03 10:42:05.882931",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 47.71,
+    "entry_price": 1.34778,
+    "snapshot_close": 1.34778,
+    "outcome_checked": false
   }
 ]

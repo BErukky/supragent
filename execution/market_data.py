@@ -194,15 +194,31 @@ def fetch_via_yfinance(symbol, timeframe, limit):
         "SP500": "^GSPC", "NASDAQ": "^IXIC", "DOW": "^DJI"
     }
     yf_symbol = SYMBOL_MAP.get(symbol.upper(), symbol.replace('/', '-'))
-    
+
+    # Map timeframe → (yfinance interval, candles-per-day)
+    # yfinance hard caps: 1m=7d, 5m/15m=60d, 1h=730d, 1d=unlimited
+    _TF_META = {
+        '1m':  ('1m',  1440, 7),
+        '5m':  ('5m',  288,  60),
+        '15m': ('15m', 96,   60),
+        '1h':  ('1h',  24,   730),
+        '4h':  ('1h',  24,   730),   # 4h resampled from 1h
+        '1d':  ('1d',  1,    None),  # unlimited
+    }
+    tf_meta = _TF_META.get(timeframe, ('1h', 24, 730))
+    yf_interval, candles_per_day, max_days = tf_meta
+
+    # Derive the minimum period needed to cover `limit` candles, capped by yfinance's max
+    needed_days = max(7, -(-limit // candles_per_day) + 2)  # ceiling div + 2 day buffer
+    if max_days is not None:
+        needed_days = min(needed_days, max_days)
+    period = f"{needed_days}d"
+
     try:
         import yfinance as yf
-        print(f"  Trying yfinance: {yf_symbol}")
-        
-        interval_map = {'1m': '1m', '5m': '5m', '15m': '15m', '1h': '1h', '4h': '1h', '1d': '1d'}
-        interval = interval_map.get(timeframe, '1h')
-        
-        data = yf.download(yf_symbol, period='5d', interval=interval, progress=False)
+        print(f"  Trying yfinance: {yf_symbol} ({yf_interval}, {period})")
+
+        data = yf.download(yf_symbol, period=period, interval=yf_interval, progress=False)
         
         if data.empty:
             return None
@@ -213,7 +229,7 @@ def fetch_via_yfinance(symbol, timeframe, limit):
         ts_col = 'datetime' if 'datetime' in df.columns else 'date'
         df['timestamp'] = (pd.to_datetime(df[ts_col]).astype('int64') // 10**6).astype(int)
         df = df[['timestamp', 'open', 'high', 'low', 'close', 'volume']].tail(limit)
-        
+
         valid, msg = validate_ohlc(df)
         if valid:
             print(f"  Success: yfinance returned {len(df)} candles")
@@ -222,7 +238,7 @@ def fetch_via_yfinance(symbol, timeframe, limit):
             print(f"  yfinance data invalid: {msg}")
     except Exception as e:
         print(f"  yfinance failed: {e}")
-    
+
     return None
 
 def fetch_data(symbol, timeframe, limit):
