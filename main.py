@@ -115,10 +115,36 @@ def _fetch_and_resample(symbol: str, stack: dict):
         fetch_data(symbol, tf, candles)
         fetched[role] = _csv_path(symbol, tf)
 
-    # Daily TF — fetch 500 daily candles ≈ ~2 years
+    # Daily TF — resample from 1H first (avoids yfinance rate limits on shared hosting).
+    # Falls back to fetch_data only if no 1H source is available.
     if stack.get("dtf") == "1d":
-        fetch_data(symbol, "1d", 500)
-        fetched["dtf"] = _csv_path(symbol, "1d")
+        src_1h = _csv_path(symbol, "1h")
+        resampled_ok = False
+        if os.path.exists(src_1h):
+            try:
+                df_1h = pd.read_csv(src_1h)
+                df_1h['datetime'] = pd.to_datetime(df_1h['timestamp'], unit='ms', utc=True)
+                df_1d = (df_1h.set_index('datetime')[['open','high','low','close','volume']]
+                         .resample('1D')
+                         .agg({'open':'first','high':'max','low':'min',
+                               'close':'last','volume':'sum'})
+                         .dropna().reset_index())
+                if len(df_1d) >= 5:
+                    df_1d['timestamp'] = (df_1d['datetime'].astype('int64') // 10**6).astype(int)
+                    df_1d[['timestamp','open','high','low','close','volume']].to_csv(
+                        _csv_path(symbol, "1d"), index=False)
+                    fetched["dtf"] = _csv_path(symbol, "1d")
+                    resampled_ok = True
+                    print(f"  1D resampled from 1H: {len(df_1d)} daily candles")
+            except Exception as e:
+                print(f"  1D resample failed: {e}")
+        if not resampled_ok:
+            try:
+                fetch_data(symbol, "1d", 500)
+                fetched["dtf"] = _csv_path(symbol, "1d")
+            except RuntimeError as e:
+                print(f"  1D fetch also failed: {e} — swing DTF will be skipped")
+                fetched.pop("dtf", None)
 
     # 4H — resample from 1H source (HTF or ITF)
     needs_4h = (stack.get("htf") == "4h") or (stack.get("itf") == "4h")
