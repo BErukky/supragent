@@ -135,18 +135,57 @@ def get_stats() -> dict:
 # ─── Price Monitor ────────────────────────────────────────────────────────────
 
 def _get_live_price(symbol: str) -> float | None:
-    """Fetches the latest close price for a symbol."""
+    """Fetches the latest close price for a symbol.
+    Priority:
+    1. Last close from the most recent cached CSV (.tmp) — zero API calls
+    2. Twelve Data /price endpoint — single lightweight call, works for forex
+    3. fetch_data 1m fallback — crypto only (forex 1m unreliable on shared hosting)
+    """
+    import pandas as pd
+
+    # 1. Read last close from any cached CSV for this symbol (prefer 1h > 15m > 1d)
+    safe = symbol.replace('/', '_')
+    for tf in ('1h', '15m', '5m', '1d'):
+        path = os.path.join('.tmp', f'{safe}_{tf}.csv')
+        if os.path.exists(path):
+            try:
+                df = pd.read_csv(path)
+                if not df.empty:
+                    return float(df['close'].iloc[-1])
+            except Exception:
+                continue
+
+    # 2. Twelve Data /price — single-field endpoint, no time-series, works for forex
     try:
-        import sys
-        sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from execution.market_data import fetch_data
-        filename = fetch_data(symbol, "1m", 5)
-        if filename:
-            import pandas as pd
-            df = pd.read_csv(filename)
-            return float(df["close"].iloc[-1])
+        import requests as _req
+        api_key = os.environ.get('TWELVEDATA_API_KEY', '')
+        if api_key:
+            from_curr, to_curr = symbol.split('/')
+            url = (f'https://api.twelvedata.com/price'
+                   f'?symbol={from_curr}/{to_curr}&apikey={api_key}')
+            r = _req.get(url, timeout=5)
+            if r.status_code == 200:
+                data = r.json()
+                if 'price' in data:
+                    return float(data['price'])
     except Exception:
         pass
+
+    # 3. fetch_data fallback (crypto only — forex 1m unreliable on Render)
+    try:
+        is_crypto = any(x in symbol.upper() for x in
+                        ['BTC','ETH','SOL','XRP','ADA','DOGE','DOT','MATIC','LTC','LINK','AVAX'])
+        if is_crypto:
+            import sys
+            sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            from execution.market_data import fetch_data
+            filename = fetch_data(symbol, '1m', 5)
+            if filename:
+                df = pd.read_csv(filename)
+                return float(df['close'].iloc[-1])
+    except Exception:
+        pass
+
     return None
 
 
