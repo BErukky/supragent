@@ -78,6 +78,26 @@ def supervised_bot():
 app = Flask(__name__)
 
 
+# DEBUG ENDPOINT — remove or add auth before any public/multi-user deployment.
+# Exposes raw trade and signal data over an unauthenticated HTTP route.
+# Fine for solo Render testing; not suitable for production.
+@app.route("/debug/files")
+def debug_files():
+    import os, json
+    def _read(path):
+        if os.path.exists(path):
+            try:
+                with open(path, "r") as f:
+                    return json.load(f)
+            except Exception as e:
+                return {"error": str(e)}
+        return None
+    return jsonify({
+        "trades":      _read(".tmp/trades.json"),
+        "signals_log": _read(".tmp/signals_log.json"),
+    }), 200
+
+
 @app.route("/")
 def health_check():
     """
