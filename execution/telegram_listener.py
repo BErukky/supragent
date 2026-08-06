@@ -79,8 +79,35 @@ def is_weekend() -> bool:
     """True if today is Saturday (5) or Sunday (6)."""
     return datetime.now().weekday() >= 5
 
+# ─── Signal persistence ──────────────────────────────────────────────────────
+_SIGNALS_LOG = os.path.join(os.path.dirname(__file__), '..', '.tmp', 'signals_log.json')
+
+def _persist_signal(chat_id, symbol: str, report: dict, stack: str):
+    """Appends the signal (with its SIGNAL_ID) to the durable signals log."""
+    entry = {
+        "signal_id": report.get("SIGNAL_ID"),
+        "chat_id":   str(chat_id),
+        "symbol":    symbol,
+        "stack":     stack,
+        "signal":    report.get("FINAL_SIGNAL"),
+        "confidence":report.get("CONFIDENCE"),
+        "ts":        report.get("TIMESTAMP", datetime.now().strftime("%Y-%m-%d %H:%M")),
+    }
+    try:
+        os.makedirs(os.path.dirname(_SIGNALS_LOG), exist_ok=True)
+        existing = []
+        if os.path.exists(_SIGNALS_LOG):
+            with open(_SIGNALS_LOG, "r") as f:
+                existing = json.load(f)
+        existing.append(entry)
+        with open(_SIGNALS_LOG, "w") as f:
+            json.dump(existing, f, indent=2)
+    except Exception as e:
+        log("WARN", "signal_persist_failed", error=str(e))
+
+
 # ─── Last signal cache for inline trade registration ──────────────────────────
-_LAST_SIGNAL: dict = {}   # {chat_id: {symbol, report}}
+_LAST_SIGNAL: dict = {}   # {chat_id: {symbol, report, stack, ts}}
 
 
 # ─── Telegram API helpers ─────────────────────────────────────────────────────
@@ -390,9 +417,11 @@ def _handle_analyze(chat_id, args):
                 "symbol": symbol, "report": report,
                 "stack": stack_arg, "ts": time.time()
             }
+            _persist_signal(chat_id, symbol, report, stack_arg)
             send_message(chat_id, panel, reply_markup=_took_trade_keyboard())
             log("INFO", "analyze_complete", chat_id=chat_id, symbol=symbol,
-                signal=report.get("FINAL_SIGNAL"), conf=report.get("CONFIDENCE"), news=run_news)
+                signal=report.get("FINAL_SIGNAL"), conf=report.get("CONFIDENCE"),
+                signal_id=report.get("SIGNAL_ID"), news=run_news)
 
         except Exception as e:
             send_message(chat_id, f"⚠️ Analysis failed, please try again")
@@ -458,8 +487,10 @@ def _handle_scalp(chat_id, args):
                 "symbol": symbol, "report": best_report,
                 "stack": best.get("stack"), "ts": time.time()
             }
+            _persist_signal(chat_id, symbol, best_report, best.get("stack", ""))
             send_message(chat_id, panel, reply_markup=_took_trade_keyboard())
-            log("INFO", "scalp_complete", chat_id=chat_id, symbol=symbol, stack=best_stack)
+            log("INFO", "scalp_complete", chat_id=chat_id, symbol=symbol, stack=best_stack,
+                signal_id=best_report.get("SIGNAL_ID"))
 
         except BaseException as e:
             tb_text = traceback.format_exc()
@@ -496,6 +527,7 @@ def _handle_took_trade(chat_id):
         risk_usd    = risk.get("RISK_AMOUNT_USD", 0),
         tp_profits  = risk.get("TP_PROFIT_USD", []),
         chat_id     = str(chat_id),
+        signal_id   = report.get("SIGNAL_ID"),
     )
 
     s = load_settings()

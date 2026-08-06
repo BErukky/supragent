@@ -14,6 +14,7 @@ import argparse
 import json
 import sys
 import os
+import uuid
 import pandas as pd
 from dotenv import load_dotenv, find_dotenv
 
@@ -315,7 +316,11 @@ def run_full_analysis(symbol, stack_name="intraday", htf=None, ltf=None,
     # Phase 12.3: Generate LLM text explanation if requested
     if use_nlp and report and "error" not in report:
         report["NLP_SUMMARY"] = generate_nlp_summary(report, symbol)
-        
+
+    # Stamp a unique signal ID on every successful report
+    if report and "error" not in report:
+        report["SIGNAL_ID"] = str(uuid.uuid4())
+
     return report
 
 

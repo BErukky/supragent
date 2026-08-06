@@ -54,10 +54,12 @@ def _save_history(history: list):
 
 def register_trade(symbol: str, direction: str, entry: float, sl: float,
                    tps: list, size_units: float, risk_usd: float,
-                   tp_profits: list = None, chat_id: str = None) -> dict:
+                   tp_profits: list = None, chat_id: str = None,
+                   signal_id: str = None) -> dict:
     """Registers a new open trade."""
     trade = {
         "id":          f"{symbol.replace('/', '_')}_{int(time.time())}",
+        "signal_id":   signal_id,
         "symbol":      symbol,
         "direction":   direction,       # "LONG" or "SHORT"
         "entry":       entry,
