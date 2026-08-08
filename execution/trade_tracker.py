@@ -137,29 +137,16 @@ def get_stats() -> dict:
 # ─── Price Monitor ────────────────────────────────────────────────────────────
 
 def _get_live_price(symbol: str) -> float | None:
-    """Fetches the latest close price for a symbol.
+    """Fetches a fresh live price for P&L display — never reads stale CSVs.
     Priority:
-    1. Last close from the most recent cached CSV (.tmp) — zero API calls
-    2. Twelve Data /price endpoint — single lightweight call, works for forex
-    3. fetch_data 1m fallback — crypto only (forex 1m unreliable on shared hosting)
+    1. Twelve Data /price — single-field, no time-series, works for forex + crypto
+    2. CCXT ticker (Binance > Bybit > Kraken) — crypto only
+    3. CSV last-close — last resort only, with a 60s staleness guard
     """
-    import pandas as pd
+    import requests as _req
 
-    # 1. Read last close from any cached CSV for this symbol (prefer 1h > 15m > 1d)
-    safe = symbol.replace('/', '_')
-    for tf in ('1h', '15m', '5m', '1d'):
-        path = os.path.join('.tmp', f'{safe}_{tf}.csv')
-        if os.path.exists(path):
-            try:
-                df = pd.read_csv(path)
-                if not df.empty:
-                    return float(df['close'].iloc[-1])
-            except Exception:
-                continue
-
-    # 2. Twelve Data /price — single-field endpoint, no time-series, works for forex
+    # 1. Twelve Data /price — fresh single-field call, no time-series overhead
     try:
-        import requests as _req
         api_key = os.environ.get('TWELVEDATA_API_KEY', '')
         if api_key:
             from_curr, to_curr = symbol.split('/')
@@ -173,18 +160,32 @@ def _get_live_price(symbol: str) -> float | None:
     except Exception:
         pass
 
-    # 3. fetch_data fallback (crypto only — forex 1m unreliable on Render)
+    # 2. CCXT ticker — crypto only
     try:
         is_crypto = any(x in symbol.upper() for x in
                         ['BTC','ETH','SOL','XRP','ADA','DOGE','DOT','MATIC','LTC','LINK','AVAX'])
         if is_crypto:
-            import sys
-            sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            from execution.market_data import fetch_data
-            filename = fetch_data(symbol, '1m', 5)
-            if filename:
-                df = pd.read_csv(filename)
-                return float(df['close'].iloc[-1])
+            import ccxt
+            for exchange in (ccxt.binance(), ccxt.bybit(), ccxt.kraken()):
+                try:
+                    ticker = exchange.fetch_ticker(symbol)
+                    if ticker.get('last'):
+                        return float(ticker['last'])
+                except Exception:
+                    continue
+    except Exception:
+        pass
+
+    # 3. CSV last-close — only if file is less than 60 seconds old
+    try:
+        import pandas as pd
+        safe = symbol.replace('/', '_')
+        for tf in ('1h', '15m', '5m', '1d'):
+            path = os.path.join('.tmp', f'{safe}_{tf}.csv')
+            if os.path.exists(path) and (time.time() - os.path.getmtime(path)) < 60:
+                df = pd.read_csv(path)
+                if not df.empty:
+                    return float(df['close'].iloc[-1])
     except Exception:
         pass
 
