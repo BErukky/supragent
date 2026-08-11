@@ -10,6 +10,7 @@ import json
 import threading
 import logging
 import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeout
 from datetime import datetime
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -42,7 +43,7 @@ def log(level: str, event: str, **kwargs):
 
 # ─── Rate Limiting ────────────────────────────────────────────────────────────
 _COOLDOWNS: dict = {}
-_RATE_LIMITS = {"analyze": 30, "scan": 300, "scalp": 120, "default": 5}
+_RATE_LIMITS = {"analyze": 30, "scan": 300, "scalp": 120, "mtf": 120, "default": 5}
 _COOLDOWN_LOCK = threading.Lock()
 
 def check_rate_limit(chat_id: int, command_group: str) -> int:
@@ -331,6 +332,7 @@ def _handle_start(chat_id):
         "  `/analyze (pair)`          Full analysis\n"
         "  `/analyze (pair) swing`    Swing stack\n"
         "  `/scalp (pair)`            AI multi-stack scalp\n"
+        "  `/mtf (pair)`              Multi-timeframe deep analysis\n"
         "  `/scan`                    Scan top 10 assets\n\n"
         "💼 *TRADE TRACKER*\n"
         "  `/trades`                  Open trades + live P&L\n"
@@ -428,6 +430,185 @@ def _handle_analyze(chat_id, args):
             log("ERROR", "analyze_exception", chat_id=chat_id, symbol=symbol, error=str(e))
 
     threading.Thread(target=_run_analysis_work, daemon=True).start()
+
+
+# ─── MTF pairings definition ─────────────────────────────────────────────────
+_MTF_PAIRINGS = [
+    {"label": "D1 → H1",  "htf": "1d",  "ltf": "1h",  "itf": "4h",  "dtf": None},
+    {"label": "H4 → M15", "htf": "4h",  "ltf": "15m", "itf": "1h",  "dtf": None},
+    {"label": "H1 → M5",  "htf": "1h",  "ltf": "5m",  "itf": "15m", "dtf": None},
+    {"label": "M15 → M1", "htf": "15m", "ltf": "1m",  "itf": None,  "dtf": None},
+]
+
+
+def _run_mtf_pairing(symbol: str, pairing: dict) -> dict:
+    """Runs one HTF/LTF pairing. Returns result dict with label + key fields."""
+    label = pairing["label"]
+    try:
+        report = run_full_analysis(
+            symbol,
+            htf=pairing["htf"],
+            ltf=pairing["ltf"],
+            itf=pairing.get("itf"),
+            dtf=pairing.get("dtf"),
+            no_news=True,
+            use_nlp=False,
+        )
+        if not report or "error" in report:
+            return {"label": label, "ok": False, "error": report.get("error", "failed") if report else "no result"}
+
+        structure = (report.get("REASONING") or {}).get("l2_confluence", "")
+        # Extract coherence % from reasoning string e.g. "Trend Coherence: 72.0%."
+        import re
+        m = re.search(r'Trend Coherence:\s*([\d.]+)%', structure)
+        coherence_pct = float(m.group(1)) if m else 0.0
+
+        signal = report.get("FINAL_SIGNAL", "WAIT")
+        conf   = report.get("CONFIDENCE", 0)
+
+        # Derive simple bias from signal
+        if "LONG" in signal and "WAIT" not in signal:
+            bias = "BULLISH"
+        elif "SHORT" in signal and "WAIT" not in signal:
+            bias = "BEARISH"
+        else:
+            bias = "NEUTRAL"
+
+        return {
+            "label":        label,
+            "ok":           True,
+            "bias":         bias,
+            "signal":       signal,
+            "confidence":   conf,
+            "coherence":    coherence_pct,
+            "structure":    _safe(structure),
+        }
+    except Exception as e:
+        return {"label": label, "ok": False, "error": str(e)}
+
+
+def _format_mtf_panel(symbol: str, results: list, elapsed: float) -> str:
+    """Builds the consolidated MTF panel message."""
+    BIAS_EMOJI = {"BULLISH": "🟢", "BEARISH": "🔴", "NEUTRAL": "⚪"}
+
+    ok_results = [r for r in results if r.get("ok")]
+
+    # Cross-pairing agreement check
+    biases = [r["bias"] for r in ok_results]
+    bull   = biases.count("BULLISH")
+    bear   = biases.count("BEARISH")
+    neut   = biases.count("NEUTRAL")
+    total  = len(biases)
+
+    if total == 0:
+        agreement = "❌ All pairings failed"
+        overall_bias = "UNKNOWN"
+    elif bull == total:
+        agreement = "✅ *STRONG BULLISH CONFLUENCE* — all TF levels aligned long"
+        overall_bias = "BULLISH"
+    elif bear == total:
+        agreement = "✅ *STRONG BEARISH CONFLUENCE* — all TF levels aligned short"
+        overall_bias = "BEARISH"
+    elif bull >= 3:
+        agreement = "🟡 *BULLISH LEAN* — 3+ pairings bullish, minor conflict"
+        overall_bias = "BULLISH"
+    elif bear >= 3:
+        agreement = "🟡 *BEARISH LEAN* — 3+ pairings bearish, minor conflict"
+        overall_bias = "BEARISH"
+    elif bull > bear and bull >= 2:
+        agreement = "🟠 *MIXED — BULLISH TILT* — higher TFs may conflict with lower"
+        overall_bias = "MIXED"
+    elif bear > bull and bear >= 2:
+        agreement = "🟠 *MIXED — BEARISH TILT* — higher TFs may conflict with lower"
+        overall_bias = "MIXED"
+    else:
+        agreement = "🔴 *CONFLICTING SIGNALS* — no clear multi-timeframe direction"
+        overall_bias = "CONFLICT"
+
+    avg_conf = round(sum(r["confidence"] for r in ok_results) / total, 1) if total else 0
+    avg_coh  = round(sum(r["coherence"]  for r in ok_results) / total, 1) if total else 0
+
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M")
+    msg = (
+        f"🔭 *MTF DEEP ANALYSIS — {symbol}*\n"
+        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+    )
+
+    for r in results:
+        lbl = r["label"]
+        if not r.get("ok"):
+            msg += f"  `{lbl}` ❌ {r.get('error', 'failed')[:60]}\n"
+            continue
+        emoji = BIAS_EMOJI.get(r["bias"], "⚪")
+        msg += (
+            f"  `{lbl}` {emoji} *{r['bias']}*\n"
+            f"    Signal: `{r['signal']}`\n"
+            f"    Conf: `{r['confidence']}/100`  Coherence: `{r['coherence']}%`\n"
+        )
+
+    msg += (
+        f"\n📊 *CROSS-PAIRING SUMMARY*\n"
+        f"  {agreement}\n"
+        f"  Pairings: `{bull}🟢 {bear}🔴 {neut}⚪` of {total} completed\n"
+        f"  Avg Conf: `{avg_conf}/100`  Avg Coherence: `{avg_coh}%`\n"
+        f"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        f"_Completed in {elapsed:.1f}s — {ts}_"
+    )
+    return msg
+
+
+def _handle_mtf(chat_id, args):
+    wait = check_rate_limit(chat_id, "mtf")
+    if wait:
+        send_message(chat_id, f"⏳ MTF cooldown: *{wait}s* remaining.")
+        return
+
+    if not args:
+        send_message(chat_id, "⚠️ Usage: `/mtf SYMBOL`\ne.g. `/mtf BTC/USD` or `/mtf GBP/USD`")
+        return
+
+    symbol = args[0].upper().replace(" ", "")
+
+    if is_fx_pair(symbol) and is_weekend():
+        send_message(chat_id, "⚪ *Forex Market Closed* — MTF analysis resumes Monday.")
+        return
+
+    send_message(chat_id,
+        f"⏳ Running multi-timeframe analysis for *{symbol}*, "
+        f"this may take longer than /analyze...")
+
+    def _run_mtf_work():
+        t0 = time.time()
+        results_map = {p["label"]: None for p in _MTF_PAIRINGS}
+        try:
+            with ThreadPoolExecutor(max_workers=4) as ex:
+                futures = {
+                    ex.submit(_run_mtf_pairing, symbol, p): p["label"]
+                    for p in _MTF_PAIRINGS
+                }
+                for fut in as_completed(futures, timeout=180):
+                    lbl = futures[fut]
+                    try:
+                        results_map[lbl] = fut.result(timeout=5)
+                    except Exception as e:
+                        results_map[lbl] = {"label": lbl, "ok": False, "error": str(e)}
+        except FuturesTimeout:
+            pass  # partial results — fill any None slots below
+
+        # Fill any timed-out slots
+        ordered = []
+        for p in _MTF_PAIRINGS:
+            r = results_map.get(p["label"])
+            ordered.append(r if r is not None else {"label": p["label"], "ok": False, "error": "timeout"})
+
+        elapsed = time.time() - t0
+        panel = _format_mtf_panel(symbol, ordered, elapsed)
+        send_message(chat_id, panel)
+        log("INFO", "mtf_complete", chat_id=chat_id, symbol=symbol,
+            elapsed=round(elapsed, 1),
+            ok_count=sum(1 for r in ordered if r.get("ok")))
+
+    threading.Thread(target=_run_mtf_work, daemon=True).start()
 
 
 def _handle_scalp(chat_id, args):
@@ -635,6 +816,9 @@ def process_command(chat_id, command, args):
         if not args and len(command) > 8:
             args = [command[8:]]
         threading.Thread(target=_handle_analyze, args=(chat_id, args), daemon=True).start()
+
+    elif cmd == "/mtf":
+        threading.Thread(target=_handle_mtf, args=(chat_id, args), daemon=True).start()
 
     elif cmd == "/scalp":
         threading.Thread(target=_handle_scalp, args=(chat_id, args), daemon=True).start()
