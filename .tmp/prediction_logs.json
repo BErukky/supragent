@@ -250,5 +250,32 @@
     "entry_price": 1.34778,
     "snapshot_close": 1.34778,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-11 10:31:49.445947",
+    "symbol": "JPY/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 51.92,
+    "entry_price": 0.0062779,
+    "snapshot_close": 0.0062779,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-11 10:32:09.568591",
+    "symbol": "AUD/USD",
+    "action": "LONG_BIAS",
+    "confidence": 78.84,
+    "entry_price": 0.70549,
+    "snapshot_close": 0.70549,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-11 10:44:08.712547",
+    "symbol": "AUD/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 69.86,
+    "entry_price": 0.70549,
+    "snapshot_close": 0.70549,
+    "outcome_checked": false
   }
 ]

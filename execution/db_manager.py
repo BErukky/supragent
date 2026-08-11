@@ -48,7 +48,9 @@ SYMBOL_YF_MAP = {
     "LINK/USD": "LINK-USD", "AVAX/USD": "AVAX-USD", "BNB/USD": "BNB-USD",
     # Forex & Commodities
     "EUR/USD": "EURUSD=X", "GBP/USD": "GBPUSD=X", "USD/JPY": "USDJPY=X",
-    "AUD/USD": "AUDUSD=X", "USD/CAD": "USDCAD=X", "USD/CHF": "USDCHF=X",
+    "AUD/USD": "AUDUSD=X", "NZD/USD": "NZDUSD=X", "USD/CAD": "USDCAD=X",
+    "USD/CHF": "USDCHF=X", "EUR/GBP": "EURGBP=X", "EUR/JPY": "EURJPY=X",
+    "GBP/JPY": "GBPJPY=X", "AUD/JPY": "AUDJPY=X", "JPY/USD": "JPYUSD=X",
     "XAU/USD": "GC=F",     "XAG/USD": "SI=F",     "OIL/USD": "CL=F",
 }
 
@@ -108,16 +110,20 @@ def _migrate_legacy_tables(con: sqlite3.Connection, verbose=True):
 
 def _fetch_yfinance(yf_symbol: str, days: int, interval: str) -> pd.DataFrame:
     """Fetches OHLCV from yfinance and returns a clean DataFrame."""
-    import yfinance as yf
-    period = f"{days}d"
-    data   = yf.download(yf_symbol, period=period, interval=interval, progress=False)
-    if data.empty:
+    try:
+        import yfinance as yf
+        period = f"{days}d"
+        data   = yf.download(yf_symbol, period=period, interval=interval, progress=False)
+        if data.empty:
+            return pd.DataFrame()
+        df = data.reset_index()
+        df.columns = [c[0].lower() if isinstance(c, tuple) else c.lower() for c in df.columns]
+        ts_col = "datetime" if "datetime" in df.columns else "date"
+        df["timestamp"] = pd.to_datetime(df[ts_col]).astype("int64") // 10**6
+        return df[["timestamp","open","high","low","close","volume"]].dropna()
+    except Exception as e:
+        print(f"  [DB] yfinance fetch failed for {yf_symbol}: {type(e).__name__}: {e}")
         return pd.DataFrame()
-    df = data.reset_index()
-    df.columns = [c[0].lower() if isinstance(c, tuple) else c.lower() for c in df.columns]
-    ts_col = "datetime" if "datetime" in df.columns else "date"
-    df["timestamp"] = pd.to_datetime(df[ts_col]).astype("int64") // 10**6
-    return df[["timestamp","open","high","low","close","volume"]].dropna()
 
 
 def _resample_4h(df_1h: pd.DataFrame) -> pd.DataFrame:

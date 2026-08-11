@@ -67,8 +67,13 @@ SYMBOL_YF_MAP = {
     "BTC/USD":  "BTC-USD",  "ETH/USD":  "ETH-USD",  "SOL/USD":  "SOL-USD",
     "XRP/USD":  "XRP-USD",  "ADA/USD":  "ADA-USD",  "DOT/USD":  "DOT-USD",
     "DOGE/USD": "DOGE-USD", "MATIC/USD":"MATIC-USD","AVAX/USD": "AVAX-USD",
-    "XAU/USD":  "GC=F",     "EUR/USD":  "EURUSD=X", "GBP/USD":  "GBPUSD=X",
-    "USD/JPY":  "USDJPY=X", "BTC/GBP":  "BTC-GBP",
+    "LTC/USD":  "LTC-USD",  "LINK/USD": "LINK-USD",  "BNB/USD":  "BNB-USD",
+    "XAU/USD":  "GC=F",     "XAG/USD":  "SI=F",      "OIL/USD":  "CL=F",
+    "EUR/USD":  "EURUSD=X", "GBP/USD":  "GBPUSD=X",  "USD/JPY":  "USDJPY=X",
+    "AUD/USD":  "AUDUSD=X", "NZD/USD":  "NZDUSD=X",  "USD/CAD":  "USDCAD=X",
+    "USD/CHF":  "USDCHF=X", "EUR/GBP":  "EURGBP=X",  "EUR/JPY":  "EURJPY=X",
+    "GBP/JPY":  "GBPJPY=X", "AUD/JPY":  "AUDJPY=X",  "JPY/USD":  "JPYUSD=X",
+    "BTC/GBP":  "BTC-GBP",
 }
 
 
