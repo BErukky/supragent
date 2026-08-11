@@ -211,8 +211,8 @@ def fetch_via_alphavantage(symbol, timeframe, limit):
     
     return None
 
-def fetch_via_yfinance(symbol, timeframe, limit):
-    """Fetches data from yfinance (commodities/stocks)."""
+def fetch_via_yfinance(symbol, timeframe, limit, _retries=2):
+    """Fetches data from yfinance (commodities/stocks/forex)."""
     SYMBOL_MAP = {
         "BTC/USD": "BTC-USD", "ETH/USD": "ETH-USD", "SOL/USD": "SOL-USD",
         "XRP/USD": "XRP-USD", "ADA/USD": "ADA-USD", "DOGE/USD": "DOGE-USD",
@@ -264,6 +264,11 @@ def fetch_via_yfinance(symbol, timeframe, limit):
         else:
             print(f"  yfinance data invalid: {msg}")
     except Exception as e:
+        if 'RateLimit' in type(e).__name__ and _retries > 0:
+            wait = (3 - _retries) * 10  # 10s, then 20s
+            print(f"  yfinance rate limited, retrying in {wait}s...")
+            time.sleep(wait)
+            return fetch_via_yfinance(symbol, timeframe, limit, _retries - 1)
         print(f"  yfinance failed: {e}")
 
     return None
