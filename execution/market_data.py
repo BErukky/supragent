@@ -310,8 +310,8 @@ def fetch_data(symbol, timeframe, limit):
     if df is None and is_forex:
         df = fetch_via_alphavantage(symbol, timeframe, limit)
 
-    # Try yfinance as final fallback (crypto + commodities; skip for forex on shared hosting)
-    if df is None and not is_forex:
+    # Try yfinance as final fallback for all asset types
+    if df is None:
         df = fetch_via_yfinance(symbol, timeframe, limit)
     
     # Final validation
