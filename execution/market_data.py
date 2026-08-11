@@ -288,25 +288,30 @@ def fetch_data(symbol, timeframe, limit):
         return filename
     
     # Determine asset type
-    is_crypto = any(x in symbol.upper() for x in ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'DOT', 'MATIC', 'LTC', 'LINK', 'AVAX'])
-    is_forex = '/' in symbol and any(x in symbol.upper() for x in ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'NZD', 'CAD'])
-    
+    _CRYPTO_TOKENS = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'DOT', 'MATIC', 'LTC', 'LINK', 'AVAX', 'BNB']
+    _FOREX_CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'NZD', 'CAD']
+    is_crypto = any(x in symbol.upper() for x in _CRYPTO_TOKENS)
+    # Forex: has '/' and both sides are fiat currencies (not crypto)
+    is_forex = ('/' in symbol
+                and not is_crypto
+                and any(x in symbol.upper() for x in _FOREX_CURRENCIES))
+
     df = None
-    
+
     # Try CCXT for crypto
     if is_crypto:
         df = fetch_via_ccxt(symbol, timeframe, limit)
-    
-    # Try Twelve Data for forex (primary)
+
+    # Try Twelve Data for forex (primary — avoids yfinance rate limits on shared hosting)
     if df is None and is_forex:
         df = fetch_via_twelvedata(symbol, timeframe, limit)
-    
+
     # Try Alpha Vantage for forex daily
     if df is None and is_forex:
         df = fetch_via_alphavantage(symbol, timeframe, limit)
-    
-    # Try yfinance as final fallback
-    if df is None:
+
+    # Try yfinance as final fallback (crypto + commodities; skip for forex on shared hosting)
+    if df is None and not is_forex:
         df = fetch_via_yfinance(symbol, timeframe, limit)
     
     # Final validation

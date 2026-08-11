@@ -184,7 +184,15 @@ def _fetch_and_resample(symbol: str, stack: dict):
 
 
 def _seed_db(symbol: str):
-    """Phase 9.1: Seeds the DB with 1H history if needed (fast incremental update)."""
+    """Phase 9.1: Seeds the DB with 1H history if needed (crypto/commodities only).
+    Forex is skipped — yfinance is rate-limited on shared hosting; Twelve Data
+    handles live forex data directly via fetch_data."""
+    _CRYPTO_TOKENS = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'DOT', 'MATIC',
+                      'LTC', 'LINK', 'AVAX', 'BNB']
+    is_crypto = any(x in symbol.upper() for x in _CRYPTO_TOKENS)
+    is_commodity = any(x in symbol.upper() for x in ['XAU', 'XAG', 'OIL'])
+    if not (is_crypto or is_commodity):
+        return  # Skip yfinance DB seeding for forex
     yf_sym = SYMBOL_YF_MAP.get(symbol, symbol.replace("/", "-"))
     try:
         ensure_history(symbol, yf_sym, "1h", verbose=True)
