@@ -217,10 +217,17 @@ def fetch_via_yfinance(symbol, timeframe, limit, _retries=2):
         "BTC/USD": "BTC-USD", "ETH/USD": "ETH-USD", "SOL/USD": "SOL-USD",
         "XRP/USD": "XRP-USD", "ADA/USD": "ADA-USD", "DOGE/USD": "DOGE-USD",
         "XAU/USD": "GC=F", "XAG/USD": "SI=F", "OIL/USD": "CL=F",
-        "EUR/USD": "EURUSD=X", "GBP/USD": "GBPUSD=X", "USD/JPY": "USDJPY=X",
         "SP500": "^GSPC", "NASDAQ": "^IXIC", "DOW": "^DJI"
     }
-    yf_symbol = SYMBOL_MAP.get(symbol.upper(), symbol.replace('/', '-'))
+    _FIAT = {'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'NZD', 'CAD'}
+    sym_upper = symbol.upper()
+    if sym_upper in SYMBOL_MAP:
+        yf_symbol = SYMBOL_MAP[sym_upper]
+    elif '/' in sym_upper and all(p in _FIAT for p in sym_upper.split('/')):
+        # Auto-generate forex ticker: AUD/JPY → AUDJPY=X
+        yf_symbol = sym_upper.replace('/', '') + '=X'
+    else:
+        yf_symbol = sym_upper.replace('/', '-')
 
     # Map timeframe → (yfinance interval, candles-per-day)
     # yfinance hard caps: 1m=7d, 5m/15m=60d, 1h=730d, 1d=unlimited
