@@ -10,7 +10,6 @@ import json
 import threading
 import logging
 import traceback
-from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeout
 from datetime import datetime
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -332,7 +331,7 @@ def _handle_start(chat_id):
         "  `/analyze (pair)`          Full analysis\n"
         "  `/analyze (pair) swing`    Swing stack\n"
         "  `/scalp (pair)`            AI multi-stack scalp\n"
-        "  `/mtf (pair)`              Multi-timeframe deep analysis\n"
+        "  `/mtf (pair) (tf)`          Single-TF analysis (D1/H4/H1/M15/M5/M1)\n"
         "  `/scan`                    Scan top 10 assets\n\n"
         "💼 *TRADE TRACKER*\n"
         "  `/trades`                  Open trades + live P&L\n"
@@ -432,129 +431,29 @@ def _handle_analyze(chat_id, args):
     threading.Thread(target=_run_analysis_work, daemon=True).start()
 
 
-# ─── MTF pairings definition ─────────────────────────────────────────────────
-_MTF_PAIRINGS = [
-    {"label": "D1 → H1",  "htf": "1d",  "ltf": "1h",  "itf": "4h",  "dtf": None},
-    {"label": "H4 → M15", "htf": "4h",  "ltf": "15m", "itf": "1h",  "dtf": None},
-    {"label": "H1 → M5",  "htf": "1h",  "ltf": "5m",  "itf": "15m", "dtf": None},
-    {"label": "M15 → M1", "htf": "15m", "ltf": "1m",  "itf": None,  "dtf": None},
-]
+# ─── /mtf timeframe alias map ────────────────────────────────────────────────
+# Accepts user-friendly input (D1, 1D, H4, 4H, H1, 1H, M15, 15M, M5, 5M, M1, 1M)
+# and normalises to the internal format used by fetch_data / run_full_analysis.
+_TF_ALIASES = {
+    "d1": "1d", "1d": "1d",
+    "h4": "4h", "4h": "4h",
+    "h1": "1h", "1h": "1h",
+    "m15": "15m", "15m": "15m",
+    "m5": "5m",  "5m": "5m",
+    "m1": "1m",  "1m": "1m",
+}
+_VALID_TF_DISPLAY = "D1, H4, H1, M15, M5, M1"
 
-
-def _run_mtf_pairing(symbol: str, pairing: dict) -> dict:
-    """Runs one HTF/LTF pairing. Returns result dict with label + key fields."""
-    label = pairing["label"]
-    try:
-        report = run_full_analysis(
-            symbol,
-            htf=pairing["htf"],
-            ltf=pairing["ltf"],
-            itf=pairing.get("itf"),
-            dtf=pairing.get("dtf"),
-            no_news=True,
-            use_nlp=False,
-        )
-        if not report or "error" in report:
-            return {"label": label, "ok": False, "error": report.get("error", "failed") if report else "no result"}
-
-        structure = (report.get("REASONING") or {}).get("l2_confluence", "")
-        # Extract coherence % from reasoning string e.g. "Trend Coherence: 72.0%."
-        import re
-        m = re.search(r'Trend Coherence:\s*([\d.]+)%', structure)
-        coherence_pct = float(m.group(1)) if m else 0.0
-
-        signal = report.get("FINAL_SIGNAL", "WAIT")
-        conf   = report.get("CONFIDENCE", 0)
-
-        # Derive simple bias from signal
-        if "LONG" in signal and "WAIT" not in signal:
-            bias = "BULLISH"
-        elif "SHORT" in signal and "WAIT" not in signal:
-            bias = "BEARISH"
-        else:
-            bias = "NEUTRAL"
-
-        return {
-            "label":        label,
-            "ok":           True,
-            "bias":         bias,
-            "signal":       signal,
-            "confidence":   conf,
-            "coherence":    coherence_pct,
-            "structure":    _safe(structure),
-        }
-    except Exception as e:
-        return {"label": label, "ok": False, "error": str(e)}
-
-
-def _format_mtf_panel(symbol: str, results: list, elapsed: float) -> str:
-    """Builds the consolidated MTF panel message."""
-    BIAS_EMOJI = {"BULLISH": "🟢", "BEARISH": "🔴", "NEUTRAL": "⚪"}
-
-    ok_results = [r for r in results if r.get("ok")]
-
-    # Cross-pairing agreement check
-    biases = [r["bias"] for r in ok_results]
-    bull   = biases.count("BULLISH")
-    bear   = biases.count("BEARISH")
-    neut   = biases.count("NEUTRAL")
-    total  = len(biases)
-
-    if total == 0:
-        agreement = "❌ All pairings failed"
-        overall_bias = "UNKNOWN"
-    elif bull == total:
-        agreement = "✅ *STRONG BULLISH CONFLUENCE* — all TF levels aligned long"
-        overall_bias = "BULLISH"
-    elif bear == total:
-        agreement = "✅ *STRONG BEARISH CONFLUENCE* — all TF levels aligned short"
-        overall_bias = "BEARISH"
-    elif bull >= 3:
-        agreement = "🟡 *BULLISH LEAN* — 3+ pairings bullish, minor conflict"
-        overall_bias = "BULLISH"
-    elif bear >= 3:
-        agreement = "🟡 *BEARISH LEAN* — 3+ pairings bearish, minor conflict"
-        overall_bias = "BEARISH"
-    elif bull > bear and bull >= 2:
-        agreement = "🟠 *MIXED — BULLISH TILT* — higher TFs may conflict with lower"
-        overall_bias = "MIXED"
-    elif bear > bull and bear >= 2:
-        agreement = "🟠 *MIXED — BEARISH TILT* — higher TFs may conflict with lower"
-        overall_bias = "MIXED"
-    else:
-        agreement = "🔴 *CONFLICTING SIGNALS* — no clear multi-timeframe direction"
-        overall_bias = "CONFLICT"
-
-    avg_conf = round(sum(r["confidence"] for r in ok_results) / total, 1) if total else 0
-    avg_coh  = round(sum(r["coherence"]  for r in ok_results) / total, 1) if total else 0
-
-    ts = datetime.now().strftime("%Y-%m-%d %H:%M")
-    msg = (
-        f"🔭 *MTF DEEP ANALYSIS — {symbol}*\n"
-        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    )
-
-    for r in results:
-        lbl = r["label"]
-        if not r.get("ok"):
-            msg += f"  `{lbl}` ❌ {r.get('error', 'failed')[:60]}\n"
-            continue
-        emoji = BIAS_EMOJI.get(r["bias"], "⚪")
-        msg += (
-            f"  `{lbl}` {emoji} *{r['bias']}*\n"
-            f"    Signal: `{r['signal']}`\n"
-            f"    Conf: `{r['confidence']}/100`  Coherence: `{r['coherence']}%`\n"
-        )
-
-    msg += (
-        f"\n📊 *CROSS-PAIRING SUMMARY*\n"
-        f"  {agreement}\n"
-        f"  Pairings: `{bull}🟢 {bear}🔴 {neut}⚪` of {total} completed\n"
-        f"  Avg Conf: `{avg_conf}/100`  Avg Coherence: `{avg_coh}%`\n"
-        f"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        f"_Completed in {elapsed:.1f}s — {ts}_"
-    )
-    return msg
+# Map each single TF to the best matching named stack so run_full_analysis
+# uses a sensible HTF/LTF pairing internally.
+_TF_TO_STACK = {
+    "1d":  "swing",
+    "4h":  "intraday",
+    "1h":  "scalp",
+    "15m": "scalp_fast",
+    "5m":  "scalp_fast",
+    "1m":  "scalp_ultra",
+}
 
 
 def _handle_mtf(chat_id, args):
@@ -563,50 +462,66 @@ def _handle_mtf(chat_id, args):
         send_message(chat_id, f"⏳ MTF cooldown: *{wait}s* remaining.")
         return
 
-    if not args:
-        send_message(chat_id, "⚠️ Usage: `/mtf SYMBOL`\ne.g. `/mtf BTC/USD` or `/mtf GBP/USD`")
+    if len(args) < 2:
+        send_message(chat_id,
+            f"⚠️ Usage: `/mtf SYMBOL TIMEFRAME`\n"
+            f"e.g. `/mtf BTC/USD 1D` or `/mtf GBP/USD H4`\n"
+            f"Valid timeframes: `{_VALID_TF_DISPLAY}`")
         return
 
-    symbol = args[0].upper().replace(" ", "")
+    symbol   = args[0].upper().replace(" ", "")
+    tf_input = args[1].lower().replace(" ", "")
+    tf       = _TF_ALIASES.get(tf_input)
+
+    if not tf:
+        send_message(chat_id,
+            f"⚠️ Unknown timeframe `{args[1].upper()}`.\n"
+            f"Valid options: `{_VALID_TF_DISPLAY}`")
+        return
 
     if is_fx_pair(symbol) and is_weekend():
         send_message(chat_id, "⚪ *Forex Market Closed* — MTF analysis resumes Monday.")
         return
 
-    send_message(chat_id,
-        f"⏳ Running multi-timeframe analysis for *{symbol}*, "
-        f"this may take longer than /analyze...")
+    blocked, reason = is_drawdown_limit_hit()
+    if blocked:
+        send_message(chat_id, reason)
+        return
+
+    send_message(chat_id, f"⏳ Analyzing {symbol} on {args[1].upper()}...")
+
+    stack = _TF_TO_STACK[tf]
 
     def _run_mtf_work():
-        t0 = time.time()
-        results_map = {p["label"]: None for p in _MTF_PAIRINGS}
         try:
-            with ThreadPoolExecutor(max_workers=4) as ex:
-                futures = {
-                    ex.submit(_run_mtf_pairing, symbol, p): p["label"]
-                    for p in _MTF_PAIRINGS
-                }
-                for fut in as_completed(futures, timeout=180):
-                    lbl = futures[fut]
-                    try:
-                        results_map[lbl] = fut.result(timeout=5)
-                    except Exception as e:
-                        results_map[lbl] = {"label": lbl, "ok": False, "error": str(e)}
-        except FuturesTimeout:
-            pass  # partial results — fill any None slots below
+            pre_report = run_full_analysis(symbol, stack_name=stack, no_news=True, use_nlp=False)
+            pre_conf   = (pre_report or {}).get("CONFIDENCE", 0)
+            l2_str     = ((pre_report or {}).get("REASONING") or {}).get("l2_confluence", "")
+            run_news   = _should_run_news(pre_conf, l2_str)
 
-        # Fill any timed-out slots
-        ordered = []
-        for p in _MTF_PAIRINGS:
-            r = results_map.get(p["label"])
-            ordered.append(r if r is not None else {"label": p["label"], "ok": False, "error": "timeout"})
+            report = run_full_analysis(symbol, stack_name=stack, no_news=not run_news, use_nlp=False)
+            if not report or "error" in report:
+                send_message(chat_id, "⚠️ Analysis failed, please try again")
+                return
 
-        elapsed = time.time() - t0
-        panel = _format_mtf_panel(symbol, ordered, elapsed)
-        send_message(chat_id, panel)
-        log("INFO", "mtf_complete", chat_id=chat_id, symbol=symbol,
-            elapsed=round(elapsed, 1),
-            ok_count=sum(1 for r in ordered if r.get("ok")))
+            report["NLP_SUMMARY"] = generate_nlp_summary(report, symbol)
+
+            stack_label = f"{args[1].upper()} [{stack}]"
+            panel = format_signal_panel(symbol, report, stack_label=stack_label)
+            _LAST_SIGNAL[chat_id] = {
+                "symbol": symbol, "report": report,
+                "stack": stack, "ts": time.time()
+            }
+            _persist_signal(chat_id, symbol, report, stack)
+            send_message(chat_id, panel, reply_markup=_took_trade_keyboard())
+            log("INFO", "mtf_complete", chat_id=chat_id, symbol=symbol,
+                tf=tf, stack=stack, signal=report.get("FINAL_SIGNAL"),
+                conf=report.get("CONFIDENCE"), signal_id=report.get("SIGNAL_ID"),
+                news=run_news)
+
+        except Exception as e:
+            send_message(chat_id, "⚠️ Analysis failed, please try again")
+            log("ERROR", "mtf_exception", chat_id=chat_id, symbol=symbol, tf=tf, error=str(e))
 
     threading.Thread(target=_run_mtf_work, daemon=True).start()
 
