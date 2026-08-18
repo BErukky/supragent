@@ -98,24 +98,41 @@ def generate_nlp_summary(report: dict, symbol: str = None) -> str:
     if not api_key:
         return "[NLP Engine Offline: GROQ_API_KEY missing]"
 
+    # Model preference order: fast/cheap first, fallback to next if model not found
+    _MODELS = ["openai/gpt-oss-20b", "groq/compound-mini", "qwen/qwen3.6-27b"]
+
     try:
         client = Groq(api_key=api_key)
         prompt = parse_report_to_prompt(report, symbol)
-        
-        # We use a fast, cheap model because latency matters here.
-        completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.2,
-            max_tokens=150,
-            timeout=15
-        )
-        
-        reply = completion.choices[0].message.content.strip()
-        _NLP_CACHE[key] = {"text": reply, "ts": now}
-        return reply
+
+        last_err = None
+        for model in _MODELS:
+            try:
+                completion = client.chat.completions.create(
+                    model=model,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.2,
+                    max_tokens=1024,
+                    timeout=15
+                )
+                msg = completion.choices[0].message
+                # openai/gpt-oss-20b is a reasoning model — content holds the
+                # final answer, reasoning holds chain-of-thought. Use content only.
+                reply = (msg.content or "").strip()
+                if not reply:
+                    last_err = Exception(f"{model} returned empty response")
+                    continue
+                _NLP_CACHE[key] = {"text": reply, "ts": now}
+                return reply
+            except Exception as e:
+                err_str = str(e).lower()
+                # Only fall through to next model on model-not-found errors
+                if any(x in err_str for x in ["model_not_found", "does not exist", "not found", "404"]):
+                    last_err = e
+                    continue
+                raise  # re-raise non-model errors immediately
+
+        return "[AI analysis unavailable — no compatible model found]"
 
     except Exception as e:
-        return f"[NLP Generation Failed: {e}]"
+        return "[AI analysis unavailable]"
