@@ -125,18 +125,21 @@ def ping():
 
 def _self_ping_loop():
     """
-    Pings own /ping endpoint every 10 minutes from inside the process.
-    This keeps Render's free tier from sleeping even if external cron-job.org
-    is down or misconfigured. Uses the PORT env var to find itself.
+    Pings own public Render URL every 10 minutes to prevent free-tier sleep.
+    RENDER_EXTERNAL_URL is set automatically by Render on all services.
+    Falls back to localhost if not on Render (local dev).
     """
     time.sleep(60)  # wait for gunicorn to fully start first
-    port = int(os.environ.get("PORT", 5000))
-    url  = f"http://localhost:{port}/ping"
+    public_url = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
+    port       = int(os.environ.get("PORT", 5000))
+    url        = f"{public_url}/ping" if public_url else f"http://localhost:{port}/ping"
+    log("INFO", "keepalive_started", target=url)
     while True:
         try:
-            requests.get(url, timeout=5)
-        except Exception:
-            pass  # never crash the keep-alive thread
+            r = requests.get(url, timeout=10)
+            log("INFO", "keepalive_ping", status=r.status_code, target=url)
+        except Exception as e:
+            log("WARN", "keepalive_ping_failed", error=str(e))
         time.sleep(600)  # every 10 minutes
 
 
