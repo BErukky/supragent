@@ -5,6 +5,7 @@ import time
 import threading
 import logging
 import json
+import requests
 from datetime import datetime
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -116,10 +117,35 @@ def health_check():
     }), 200
 
 
+@app.route("/ping")
+def ping():
+    """Lightweight keep-alive endpoint — faster than / for external pingers."""
+    return "pong", 200
+
+
+def _self_ping_loop():
+    """
+    Pings own /ping endpoint every 10 minutes from inside the process.
+    This keeps Render's free tier from sleeping even if external cron-job.org
+    is down or misconfigured. Uses the PORT env var to find itself.
+    """
+    time.sleep(60)  # wait for gunicorn to fully start first
+    port = int(os.environ.get("PORT", 5000))
+    url  = f"http://localhost:{port}/ping"
+    while True:
+        try:
+            requests.get(url, timeout=5)
+        except Exception:
+            pass  # never crash the keep-alive thread
+        time.sleep(600)  # every 10 minutes
+
+
 def _start_supervisor():
-    """Starts the supervised bot thread if not already running."""
+    """Starts the supervised bot thread and self-ping keep-alive."""
     t = threading.Thread(target=supervised_bot, name="BotSupervisor", daemon=True)
     t.start()
+    p = threading.Thread(target=_self_ping_loop, name="KeepAlive", daemon=True)
+    p.start()
     log("INFO", "supervisor_started", thread=t.name)
 
 
