@@ -277,5 +277,32 @@
     "entry_price": 0.70549,
     "snapshot_close": 0.70549,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-21 02:18:39.801274",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 66.13,
+    "entry_price": 4532.50737,
+    "snapshot_close": 4532.50737,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-21 02:20:53.350424",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 51.36,
+    "entry_price": 72358.57,
+    "snapshot_close": 72358.57,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-08-21 02:21:19.072646",
+    "symbol": "GBP/USD",
+    "action": "LONG_BIAS",
+    "confidence": 85.35,
+    "entry_price": 1.36467,
+    "snapshot_close": 1.36467,
+    "outcome_checked": false
   }
 ]

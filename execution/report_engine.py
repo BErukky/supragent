@@ -226,8 +226,20 @@ def calculate_v2_risk(action, str_data, news_penalty, external_data=None, symbol
 
     # 2. MICRO-INVALIDATION (Sniper Stop Loss)
     # -------------------------------------------------------------------------
-    # Stop Loss is precisely 0.2*ATR past the invalidation point of the zone
-    buffer = 0.2 * atr
+    # ATR buffer multiplier — per asset class, based on typical hourly volatility:
+    #   Metals  (XAU/XAG): 1.0x — gold moves 10-15 pts/hr, needs real structural room
+    #   Crypto  (BTC/ETH…): 0.75x — ATR already wide (~$600-1200), 0.75x is sufficient
+    #   Forex   (all pairs): 0.6x — tight pip spreads, 0.6x ATR ≈ 50-60 pips
+    # Previously 0.2x across all assets — too tight, hit by normal noise not real invalidation.
+    s_upper = symbol.upper()
+    if any(x in s_upper for x in ["XAU", "XAG", "GOLD", "SILVER"]):
+        atr_buffer_mult = 1.0
+    elif any(x in s_upper for x in ["BTC", "ETH", "SOL", "XRP", "BNB", "DOGE", "ADA", "AVAX", "LTC", "LINK"]):
+        atr_buffer_mult = 0.75
+    else:
+        atr_buffer_mult = 0.6   # forex and everything else
+
+    buffer = atr_buffer_mult * atr
     if is_long:
         sl_price = invalidation_price - buffer
     else:
@@ -238,8 +250,10 @@ def calculate_v2_risk(action, str_data, news_penalty, external_data=None, symbol
     if (is_long and entry_price > last_price) or (not is_long and entry_price < last_price):
         entry_price = last_price
 
-    # Fallback to absolute minimum risk if math gets tangled
-    min_dist = last_price * 0.001 
+    # Minimum SL distance: 1.5x ATR (replaces flat last_price * 0.001).
+    # A flat 0.1% of price ignores how much the asset actually moves —
+    # 0.1% of XAU=$4.53 but 1h ATR is ~12 pts. ATR-relative floor is always realistic.
+    min_dist = 1.5 * atr
     if abs(entry_price - sl_price) < min_dist:
         sl_price = entry_price - min_dist if is_long else entry_price + min_dist
 
