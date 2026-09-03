@@ -235,7 +235,9 @@ def format_signal_panel(symbol: str, data: dict, stack_label: str = "") -> str:
     # ── Section 3: Trade Setup ────────────────────────────────────────────
     msg += f"💰 *TRADE SETUP — {sig_emoji} {sig}*\n"
 
-    if risk.get("ENTRY_PRICE"):
+    if "LOCKED" in sig.upper():
+        msg += "  ⛔ _Trade Locked — Setup withheld due to critical risk_\n"
+    elif risk.get("ENTRY_PRICE"):
         sl         = risk.get("STOP_LOSS", "N/A")
         tp_targets = risk.get("TAKE_PROFIT", [])
         tp_usd     = risk.get("TP_PROFIT_USD", [])
@@ -419,7 +421,8 @@ def _handle_analyze(chat_id, args):
                 "stack": stack_arg, "ts": time.time()
             }
             _persist_signal(chat_id, symbol, report, stack_arg)
-            send_message(chat_id, panel, reply_markup=_took_trade_keyboard())
+            is_locked = "LOCKED" in (report.get("FINAL_SIGNAL") or "").upper()
+            send_message(chat_id, panel, reply_markup=None if is_locked else _took_trade_keyboard())
             log("INFO", "analyze_complete", chat_id=chat_id, symbol=symbol,
                 signal=report.get("FINAL_SIGNAL"), conf=report.get("CONFIDENCE"),
                 signal_id=report.get("SIGNAL_ID"), news=run_news)
@@ -513,7 +516,8 @@ def _handle_mtf(chat_id, args):
                 "stack": stack, "ts": time.time()
             }
             _persist_signal(chat_id, symbol, report, stack)
-            send_message(chat_id, panel, reply_markup=_took_trade_keyboard())
+            is_locked = "LOCKED" in (report.get("FINAL_SIGNAL") or "").upper()
+            send_message(chat_id, panel, reply_markup=None if is_locked else _took_trade_keyboard())
             log("INFO", "mtf_complete", chat_id=chat_id, symbol=symbol,
                 tf=tf, stack=stack, signal=report.get("FINAL_SIGNAL"),
                 conf=report.get("CONFIDENCE"), signal_id=report.get("SIGNAL_ID"),
@@ -584,7 +588,8 @@ def _handle_scalp(chat_id, args):
                 "stack": best.get("stack"), "ts": time.time()
             }
             _persist_signal(chat_id, symbol, best_report, best.get("stack", ""))
-            send_message(chat_id, panel, reply_markup=_took_trade_keyboard())
+            is_locked = "LOCKED" in (best_report.get("FINAL_SIGNAL") or "").upper()
+            send_message(chat_id, panel, reply_markup=None if is_locked else _took_trade_keyboard())
             log("INFO", "scalp_complete", chat_id=chat_id, symbol=symbol, stack=best_stack,
                 signal_id=best_report.get("SIGNAL_ID"))
 
@@ -607,6 +612,10 @@ def _handle_took_trade(chat_id):
     symbol  = cached["symbol"]
     report  = cached["report"]
     risk    = (report.get("RISK_ADVISORY") or {})
+
+    if "LOCKED" in (report.get("FINAL_SIGNAL") or "").upper():
+        send_message(chat_id, "⛔ *Trade Locked*: Cannot register trade. Orders are blocked due to critical risk.")
+        return
 
     if not risk.get("ENTRY_PRICE"):
         send_message(chat_id, "⚠️ No valid trade setup in the last signal (WAIT signal).")

@@ -8,6 +8,8 @@ import json
 import time
 import threading
 from datetime import datetime
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 
 TRADES_FILE  = ".tmp/trades.json"
 HISTORY_FILE = ".tmp/trade_history.json"
@@ -139,9 +141,10 @@ def get_stats() -> dict:
 def _get_live_price(symbol: str) -> float | None:
     """Fetches a fresh live price for P&L display — never reads stale CSVs.
     Priority:
-    1. Twelve Data /price — single-field, no time-series, works for forex + crypto
+    1. Twelve Data /price — single-field, no time-series, works for forex + crypto + metals
     2. CCXT ticker (Binance > Bybit > Kraken) — crypto only
-    3. CSV last-close — last resort only, with a 60s staleness guard
+    3. yfinance fast ticker (GC=F, SI=F, BTC-USD, forex, etc.)
+    4. CSV last-close — last resort only, with a 60s staleness guard
     """
     import requests as _req
 
@@ -176,7 +179,35 @@ def _get_live_price(symbol: str) -> float | None:
     except Exception:
         pass
 
-    # 3. CSV last-close — only if file is less than 60 seconds old
+    # 3. yfinance ticker — commodities, indices, forex, crypto fallback
+    try:
+        import yfinance as yf
+        SYMBOL_MAP = {
+            "BTC/USD": "BTC-USD", "ETH/USD": "ETH-USD", "SOL/USD": "SOL-USD",
+            "XRP/USD": "XRP-USD", "ADA/USD": "ADA-USD", "DOGE/USD": "DOGE-USD",
+            "XAU/USD": "GC=F", "XAG/USD": "SI=F", "OIL/USD": "CL=F",
+            "SP500": "^GSPC", "NASDAQ": "^IXIC", "DOW": "^DJI"
+        }
+        _FIAT = {'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'NZD', 'CAD'}
+        sym_upper = symbol.upper()
+        if sym_upper in SYMBOL_MAP:
+            yf_symbol = SYMBOL_MAP[sym_upper]
+        elif '/' in sym_upper and all(p in _FIAT for p in sym_upper.split('/')):
+            yf_symbol = sym_upper.replace('/', '') + '=X'
+        else:
+            yf_symbol = sym_upper.replace('/', '-')
+
+        ticker = yf.Ticker(yf_symbol)
+        fast_info = getattr(ticker, 'fast_info', None)
+        if fast_info and getattr(fast_info, 'last_price', None):
+            return float(fast_info.last_price)
+        hist = ticker.history(period="1d", interval="1m")
+        if not hist.empty and 'Close' in hist.columns:
+            return float(hist['Close'].iloc[-1])
+    except Exception:
+        pass
+
+    # 4. CSV last-close — only if file is less than 60 seconds old
     try:
         import pandas as pd
         safe = symbol.replace('/', '_')

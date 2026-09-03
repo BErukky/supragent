@@ -172,6 +172,9 @@ def calculate_v2_risk(action, str_data, news_penalty, external_data=None, symbol
     if external_data is None:
         external_data = {}
 
+    if "LOCKED" in action.upper():
+        return None
+
     details = str_data.get("details", {})
     ltf_l1 = details.get("ltf_layer1", {})
     ltf_struct = details.get("raw_ltf_structure", [])

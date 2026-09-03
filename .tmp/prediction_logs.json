@@ -304,5 +304,23 @@
     "entry_price": 1.36467,
     "snapshot_close": 1.36467,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-03 15:09:52.640873",
+    "symbol": "ETH/USD",
+    "action": "SHORT_BIAS",
+    "confidence": 78.97,
+    "entry_price": 2393.49,
+    "snapshot_close": 2393.49,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-03 15:11:29.957271",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 58.26,
+    "entry_price": 0.206595,
+    "snapshot_close": 0.206595,
+    "outcome_checked": false
   }
 ]

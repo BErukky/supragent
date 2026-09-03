@@ -44,18 +44,23 @@ def parse_report_to_prompt(report: dict, symbol: str = None) -> str:
     context += f" - {reasoning.get('l3_history', 'No historic data')}\n"
     context += f" - {reasoning.get('l4_news', 'No sentiment data')}\n"
 
-    is_wait_no_trade = "WAIT" in signal.upper() and "NO_TRADE" in signal.upper()
+    is_locked = "LOCKED" in signal.upper()
+    is_wait_no_trade = ("WAIT" in signal.upper() or "NO_TRADE" in signal.upper()) and not is_locked
 
-    if risk_info and risk_info.get("ENTRY_PRICE") and not is_wait_no_trade:
-        context += "\nPending Limit Order Details:\n"
+    if risk_info and risk_info.get("ENTRY_PRICE") and not is_locked:
+        context += "\nCalculated Trade Setup (Reference Levels):\n" if is_wait_no_trade else "\nPending Limit Order Details:\n"
         context += f" - Type: {risk_info.get('ENTRY_TYPE', 'N/A')} @ {risk_info.get('ENTRY_PRICE')}\n"
         context += f" - Invalidation Stop Loss: {risk_info.get('STOP_LOSS')}\n"
         tp = " | ".join(map(str, risk_info.get("TAKE_PROFIT", [])))
         context += f" - Projected Targets: {tp}\n"
-        context += f" - Geometric R:R: {risk_info.get('RR_RATIO', 'N/A')}:1\n"
+        if risk_info.get('RR_RATIO'):
+            context += f" - Geometric R:R: {risk_info.get('RR_RATIO')}:1\n"
+        elif risk_info.get('TP_RR_ACTUAL'):
+            rr_vals = " | ".join(f"{r}x" for r in risk_info.get('TP_RR_ACTUAL', []))
+            context += f" - Target R:R: {rr_vals}\n"
     else:
         context += "\nTrade Setup Details:\n"
-        context += " - Entry: not provided\n"
+        context += " - Entry: not provided (Trade Locked)\n" if is_locked else " - Entry: not provided\n"
         context += " - Stop Loss: not provided\n"
         context += " - Take Profit 1: not provided\n"
         context += " - Risk/Reward Ratio: not provided\n"
@@ -64,9 +69,25 @@ def parse_report_to_prompt(report: dict, symbol: str = None) -> str:
         "\n--- END ---\n"
         "Output 2-3 sentences: WHY this decision? What's the key issue? What's the plan? "
         "Be direct. No fluff. Use terms like 'ranging', 'confluence', 'invalidation', 'R:R'. "
+    )
+
+    if is_locked:
+        context += (
+            "For WAIT / LOCKED decisions: The asset is in a hard protocol or critical risk lock. "
+            "No trade setup (Entry, Stop Loss, Take Profit) is provided. State clearly that the market is locked "
+            "due to critical risk/news and all trade execution is strictly prohibited. "
+        )
+    elif is_wait_no_trade:
+        context += (
+            "For WAIT / NO_TRADE decisions: Calculated entry, SL, and TP levels ARE shown above, "
+            "but the decision is still to WAIT/HOLD because of the technical, structural, or governance reasons in the data. "
+            "Do NOT claim that no entry, SL, or TP levels exist or are defined. "
+            "Instead, note that despite the calculated levels above, entry is withheld/invalidated at this time due to the specific issue (e.g. low confidence, governance alert, lack of confluence, or ranging market). "
+        )
+
+    context += (
         "Only reference numbers, values, and metrics that are explicitly provided in the data above. "
-        "Do not invent, assume, or estimate any figure (price, R:R ratio, percentage, etc.) that is not present in the input data. "
-        "If a value like R:R is not applicable (for example, for WAIT/NO_TRADE signals with no entry), do not mention any R:R ratio at all."
+        "Do not invent, assume, or estimate any figure (price, R:R ratio, percentage, etc.) that is not present in the input data."
     )
     
     return context
