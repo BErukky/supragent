@@ -1047,7 +1047,8 @@ def analyze_layer1(df):
             f"BOS:+{bos_bonus} Fib:{fib_data['fib_entry_zone']}(+{fib_bonus}) | "
             f"StochRSI:{stoch_regime}(+{stoch_bonus}) VP:+{vp_bonus} VWAP:{vwap_data['price_vs_vwap']}(+{vwap_bonus})"
         ),
-        "raw_structure": structure
+        "raw_structure": structure,
+        "last_close": float(df['close'].iloc[-1]) if not df.empty and 'close' in df.columns else None
     }
 
 def main():

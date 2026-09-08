@@ -322,5 +322,158 @@
     "entry_price": 0.206595,
     "snapshot_close": 0.206595,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 08:27:42.370883",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 51.87,
+    "entry_price": 4398.89148,
+    "snapshot_close": 4398.89148,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 08:51:00.666024",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 50.88,
+    "entry_price": 4440.4,
+    "snapshot_close": 4440.39990234375,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 08:51:20.934865",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 66.54,
+    "entry_price": 1.35307,
+    "snapshot_close": 1.35307,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 08:52:06.915202",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 4392.32,
+    "snapshot_close": 4392.32222,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 08:52:24.130357",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 66.54,
+    "entry_price": 1.35322,
+    "snapshot_close": 1.35316,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 09:06:35.481298",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 78385.59,
+    "snapshot_close": 78391.11,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 09:07:04.192669",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 78393.43,
+    "snapshot_close": 78393.43,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 09:08:01.056466",
+    "symbol": "ETH/USD",
+    "action": "WAIT / LOCKED (CRITICAL NEWS)",
+    "confidence": 14.33,
+    "entry_price": 2474.49,
+    "snapshot_close": 2474.49,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 09:08:22.930041",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 36.33,
+    "entry_price": 2474.34,
+    "snapshot_close": 2473.84,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 09:12:33.529367",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 78357.66,
+    "snapshot_close": 78230.0,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 09:16:39.354630",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 78348.0,
+    "snapshot_close": 78348.0,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 09:20:01.536832",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 78344.0,
+    "snapshot_close": 78344.0,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 09:22:21.142018",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 2472.67,
+    "snapshot_close": 2472.68,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 09:23:35.278901",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 78350.0,
+    "snapshot_close": 78350.0,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 09:23:52.302985",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 2472.82,
+    "snapshot_close": 2472.99,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 09:24:56.700095",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 78392.0,
+    "snapshot_close": 78399.99,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-08 09:25:26.081448",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 2472.86,
+    "snapshot_close": 2472.86,
+    "outcome_checked": false
   }
 ]

@@ -4,9 +4,11 @@ Stores open/closed trades in .tmp/trades.json and .tmp/trade_history.json.
 Polls prices every N seconds and fires Telegram TP/SL alerts automatically.
 """
 import os
+import sys
 import json
 import time
 import threading
+import traceback
 from datetime import datetime
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
@@ -14,6 +16,7 @@ load_dotenv(find_dotenv())
 TRADES_FILE  = ".tmp/trades.json"
 HISTORY_FILE = ".tmp/trade_history.json"
 
+_trades_lock = threading.RLock()
 _monitor_thread: threading.Thread = None
 _bot_send_fn = None   # injected by telegram_listener
 
@@ -21,35 +24,45 @@ _bot_send_fn = None   # injected by telegram_listener
 # ─── Persistence ────────────────────────────────────────────────────────────
 
 def _load_trades() -> list:
-    try:
-        if os.path.exists(TRADES_FILE):
-            with open(TRADES_FILE, "r") as f:
-                return json.load(f)
-    except Exception:
-        pass
-    return []
+    with _trades_lock:
+        try:
+            if os.path.exists(TRADES_FILE):
+                with open(TRADES_FILE, "r") as f:
+                    return json.load(f)
+        except Exception as e:
+            print(f"[TRADE_TRACKER_WARN] Error loading {TRADES_FILE}: {e}", file=sys.stderr)
+        return []
 
 
 def _save_trades(trades: list):
-    os.makedirs(".tmp", exist_ok=True)
-    with open(TRADES_FILE, "w") as f:
-        json.dump(trades, f, indent=2)
+    with _trades_lock:
+        try:
+            os.makedirs(".tmp", exist_ok=True)
+            with open(TRADES_FILE, "w") as f:
+                json.dump(trades, f, indent=2)
+        except Exception as e:
+            print(f"[TRADE_TRACKER_ERROR] Error saving {TRADES_FILE}: {e}", file=sys.stderr)
 
 
 def _load_history() -> list:
-    try:
-        if os.path.exists(HISTORY_FILE):
-            with open(HISTORY_FILE, "r") as f:
-                return json.load(f)
-    except Exception:
-        pass
-    return []
+    with _trades_lock:
+        try:
+            if os.path.exists(HISTORY_FILE):
+                with open(HISTORY_FILE, "r") as f:
+                    return json.load(f)
+        except Exception as e:
+            print(f"[TRADE_TRACKER_WARN] Error loading {HISTORY_FILE}: {e}", file=sys.stderr)
+        return []
 
 
 def _save_history(history: list):
-    os.makedirs(".tmp", exist_ok=True)
-    with open(HISTORY_FILE, "w") as f:
-        json.dump(history, f, indent=2)
+    with _trades_lock:
+        try:
+            os.makedirs(".tmp", exist_ok=True)
+            with open(HISTORY_FILE, "w") as f:
+                json.dump(history, f, indent=2)
+        except Exception as e:
+            print(f"[TRADE_TRACKER_ERROR] Error saving {HISTORY_FILE}: {e}", file=sys.stderr)
 
 
 # ─── Core Operations ─────────────────────────────────────────────────────────
@@ -75,75 +88,79 @@ def register_trade(symbol: str, direction: str, entry: float, sl: float,
         "opened_at":   datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
         "chat_id":     chat_id,
     }
-    trades = _load_trades()
-    trades.append(trade)
-    _save_trades(trades)
+    with _trades_lock:
+        trades = _load_trades()
+        trades.append(trade)
+        _save_trades(trades)
     return trade
 
 
 def get_open_trades() -> list:
-    return [t for t in _load_trades() if t["status"] == "OPEN"]
+    with _trades_lock:
+        return [t for t in _load_trades() if t["status"] == "OPEN"]
 
 
 def close_trade(trade_id: str, exit_price: float) -> dict:
     """Manually closes a trade at the given price. Returns the closed trade record."""
     from bot_settings import record_trade_close
 
-    trades  = _load_trades()
-    history = _load_history()
-    result  = None
+    with _trades_lock:
+        trades  = _load_trades()
+        history = _load_history()
+        result  = None
 
-    for t in trades:
-        if t["id"] == trade_id and t["status"] == "OPEN":
-            is_long  = t["direction"] == "LONG"
-            pnl_usd  = round((exit_price - t["entry"]) * t["size_units"] * (1 if is_long else -1), 4)
-            rr       = round(pnl_usd / t["risk_usd"], 2) if t["risk_usd"] > 0 else 0
+        for t in trades:
+            if t["id"] == trade_id and t["status"] == "OPEN":
+                is_long  = t["direction"] == "LONG"
+                pnl_usd  = round((exit_price - t["entry"]) * t["size_units"] * (1 if is_long else -1), 4)
+                rr       = round(pnl_usd / t["risk_usd"], 2) if t["risk_usd"] > 0 else 0
 
-            t["status"]    = "CLOSED"
-            t["exit_price"] = exit_price
-            t["pnl_usd"]   = pnl_usd
-            t["rr_actual"] = rr
-            t["closed_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+                t["status"]    = "CLOSED"
+                t["exit_price"] = exit_price
+                t["pnl_usd"]   = pnl_usd
+                t["rr_actual"] = rr
+                t["closed_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
-            history.append(t)
-            record_trade_close(pnl_usd)
-            result = t
-            break
+                history.append(t)
+                record_trade_close(pnl_usd)
+                result = t
+                break
 
-    _save_trades([t for t in trades if t["status"] == "OPEN"])
-    _save_history(history)
-    return result
+        _save_trades([t for t in trades if t["status"] == "OPEN"])
+        _save_history(history)
+        return result
 
 
 def get_stats() -> dict:
     """Returns win rate, avg R, net P&L from closed trade history."""
-    history = _load_history()
-    if not history:
-        return {"total": 0, "wins": 0, "losses": 0, "win_rate": 0, "avg_rr": 0, "net_pnl": 0}
+    with _trades_lock:
+        history = _load_history()
+        if not history:
+            return {"total": 0, "wins": 0, "losses": 0, "win_rate": 0, "avg_rr": 0, "net_pnl": 0}
 
-    wins   = [t for t in history if t.get("pnl_usd", 0) > 0]
-    losses = [t for t in history if t.get("pnl_usd", 0) <= 0]
-    net    = sum(t.get("pnl_usd", 0) for t in history)
-    rrs    = [t.get("rr_actual", 0) for t in history if t.get("rr_actual")]
+        wins   = [t for t in history if t.get("pnl_usd", 0) > 0]
+        losses = [t for t in history if t.get("pnl_usd", 0) <= 0]
+        net    = sum(t.get("pnl_usd", 0) for t in history)
+        rrs    = [t.get("rr_actual", 0) for t in history if t.get("rr_actual")]
 
-    return {
-        "total":    len(history),
-        "wins":     len(wins),
-        "losses":   len(losses),
-        "win_rate": round(len(wins) / len(history) * 100, 1),
-        "avg_rr":   round(sum(rrs) / len(rrs), 2) if rrs else 0,
-        "net_pnl":  round(net, 4),
-    }
+        return {
+            "total":    len(history),
+            "wins":     len(wins),
+            "losses":   len(losses),
+            "win_rate": round(len(wins) / len(history) * 100, 1),
+            "avg_rr":   round(sum(rrs) / len(rrs), 2) if rrs else 0,
+            "net_pnl":  round(net, 4),
+        }
 
 
 # ─── Price Monitor ────────────────────────────────────────────────────────────
 
 def _get_live_price(symbol: str) -> float | None:
-    """Fetches a fresh live price for P&L display — never reads stale CSVs.
+    """Fetches a fresh live price for P&L display and trade monitoring — never reads stale CSVs.
     Priority:
     1. Twelve Data /price — single-field, no time-series, works for forex + crypto + metals
-    2. CCXT ticker (Binance > Bybit > Kraken) — crypto only
-    3. yfinance fast ticker (GC=F, SI=F, BTC-USD, forex, etc.)
+    2. CCXT ticker (Binance > Bybit > Kraken) — crypto, plus PAXG/USDT for XAU/USD spot gold
+    3. yfinance fast ticker (PAXG-USD for Gold, SI=F for Silver, forex =X, crypto -USD)
     4. CSV last-close — last resort only, with a 60s staleness guard
     """
     import requests as _req
@@ -163,15 +180,19 @@ def _get_live_price(symbol: str) -> float | None:
     except Exception:
         pass
 
-    # 2. CCXT ticker — crypto only
+    # 2. CCXT ticker — crypto + Gold spot token (PAXG/USDT)
     try:
-        is_crypto = any(x in symbol.upper() for x in
+        sym_upper = symbol.upper()
+        is_crypto = any(x in sym_upper for x in
                         ['BTC','ETH','SOL','XRP','ADA','DOGE','DOT','MATIC','LTC','LINK','AVAX'])
-        if is_crypto:
+        is_gold = sym_upper in ['XAU/USD', 'GOLD/USD']
+
+        if is_crypto or is_gold:
             import ccxt
-            for exchange in (ccxt.binance(), ccxt.bybit(), ccxt.kraken()):
+            target_symbol = "PAXG/USDT" if is_gold else symbol
+            for exchange in (ccxt.binance({'timeout': 5000}), ccxt.bybit({'timeout': 5000})):
                 try:
-                    ticker = exchange.fetch_ticker(symbol)
+                    ticker = exchange.fetch_ticker(target_symbol)
                     if ticker.get('last'):
                         return float(ticker['last'])
                 except Exception:
@@ -185,7 +206,8 @@ def _get_live_price(symbol: str) -> float | None:
         SYMBOL_MAP = {
             "BTC/USD": "BTC-USD", "ETH/USD": "ETH-USD", "SOL/USD": "SOL-USD",
             "XRP/USD": "XRP-USD", "ADA/USD": "ADA-USD", "DOGE/USD": "DOGE-USD",
-            "XAU/USD": "GC=F", "XAG/USD": "SI=F", "OIL/USD": "CL=F",
+            "XAU/USD": "PAXG-USD",  # Spot gold proxy (never GC=F futures due to $43+ contango basis)
+            "XAG/USD": "SI=F", "OIL/USD": "CL=F",
             "SP500": "^GSPC", "NASDAQ": "^IXIC", "DOW": "^DJI"
         }
         _FIAT = {'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'NZD', 'CAD'}
@@ -227,87 +249,124 @@ def _check_trades(send_fn):
     """Called periodically — checks all open trades for TP/SL hits."""
     from bot_settings import record_trade_close, load_settings
 
-    trades  = _load_trades()
-    history = _load_history()
-    updated = False
+    with _trades_lock:
+        trades  = _load_trades()
+        history = _load_history()
+        updated = False
 
-    for t in trades:
-        if t["status"] != "OPEN":
-            continue
-
-        price = _get_live_price(t["symbol"])
-        if price is None:
-            continue
-
-        is_long = t["direction"] == "LONG"
-        chat_id = t.get("chat_id")
-
-        # ── Check SL ─────────────────────────────────────────────────────
-        sl_hit = (is_long and price <= t["sl"]) or (not is_long and price >= t["sl"])
-        if sl_hit:
-            pnl = round(-abs(t["risk_usd"]), 4)
-            t["status"]     = "CLOSED"
-            t["exit_price"] = t["sl"]
-            t["pnl_usd"]    = pnl
-            t["rr_actual"]  = -1.0
-            t["closed_at"]  = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-            history.append(t)
-            s = record_trade_close(pnl)
-            updated = True
-
-            if send_fn and chat_id:
-                send_fn(chat_id, (
-                    f"🛑 *STOPPED OUT — {t['symbol']}*\n"
-                    f"  Price hit SL: `{t['sl']}`\n"
-                    f"  Loss:    `−${abs(pnl)}`  (−1.0x R)\n"
-                    f"  Balance: `${round(s['account_balance'] - pnl, 2)}` → `${s['account_balance']}`\n"
-                    f"  Today's P&L: `${s['daily_realized_pnl']}`"
-                ))
-            continue
-
-        # ── Check TPs ────────────────────────────────────────────────────
-        for i, tp in enumerate(t["tps"]):
-            if i in t["tps_hit"]:
+        for t in trades:
+            if t.get("status") != "OPEN":
                 continue
-            tp_hit = (is_long and price >= tp) or (not is_long and price <= tp)
-            if tp_hit:
-                profit = t["tp_profits"][i] if i < len(t.get("tp_profits", [])) else \
-                         round(abs(tp - t["entry"]) * t["size_units"], 4)
-                rr     = round(profit / t["risk_usd"], 2) if t["risk_usd"] > 0 else 0
-                t["tps_hit"].append(i)
-                updated = True
 
-                # Partial close — record P&L for TP1/TP2, full close at TP3
-                if i == len(t["tps"]) - 1:
+            try:
+                symbol = t.get("symbol", "")
+                price  = _get_live_price(symbol)
+
+                # Inspect recent 5m candle high/low if available to catch intra-candle wicks
+                candle_high = price
+                candle_low  = price
+                try:
+                    safe = symbol.replace('/', '_')
+                    csv_path = os.path.join('.tmp', f'{safe}_5m.csv')
+                    if os.path.exists(csv_path) and (time.time() - os.path.getmtime(csv_path)) < 600:
+                        import pandas as pd
+                        cdf = pd.read_csv(csv_path)
+                        if not cdf.empty and 'high' in cdf.columns and 'low' in cdf.columns:
+                            c_h = float(cdf['high'].iloc[-1])
+                            c_l = float(cdf['low'].iloc[-1])
+                            if price is not None:
+                                candle_high = max(price, c_h)
+                                candle_low  = min(price, c_l)
+                            else:
+                                candle_high = c_h
+                                candle_low  = c_l
+                except Exception:
+                    pass
+
+                if price is None and candle_high is None:
+                    print(f"[TRADE_MONITOR_WARN] Live price and candle data unavailable for {symbol} (trade {t.get('id')}) — skipping check this cycle", file=sys.stderr)
+                    continue
+
+                is_long = t["direction"] == "LONG"
+                chat_id = t.get("chat_id")
+
+                # ── Check SL ─────────────────────────────────────────────────────
+                # Long SL: price or candle low broke below SL
+                # Short SL: price or candle high broke above SL
+                sl_hit = (is_long and candle_low is not None and candle_low <= t["sl"]) or \
+                         (not is_long and candle_high is not None and candle_high >= t["sl"])
+
+                if sl_hit:
+                    pnl = round(-abs(t["risk_usd"]), 4)
                     t["status"]     = "CLOSED"
-                    t["exit_price"] = tp
-                    t["pnl_usd"]    = profit
-                    t["rr_actual"]  = rr
+                    t["exit_price"] = t["sl"]
+                    t["pnl_usd"]    = pnl
+                    t["rr_actual"]  = -1.0
                     t["closed_at"]  = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
                     history.append(t)
-                    record_trade_close(profit)
-                else:
-                    record_trade_close(profit)
+                    s = record_trade_close(pnl)
+                    updated = True
 
-                s = load_settings()
-                next_tp = t["tps"][i + 1] if i + 1 < len(t["tps"]) else None
+                    if send_fn and chat_id:
+                        send_fn(chat_id, (
+                            f"🛑 *STOPPED OUT — {t['symbol']}*\n"
+                            f"  Price hit SL: `{t['sl']}`\n"
+                            f"  Loss:    `−${abs(pnl)}`  (−1.0x R)\n"
+                            f"  Balance: `${round(s['account_balance'] - pnl, 2)}` → `${s['account_balance']}`\n"
+                            f"  Today's P&L: `${s['daily_realized_pnl']}`"
+                        ))
+                    continue
 
-                if send_fn and chat_id:
-                    msg = (
-                        f"🎯 *TP{i+1} HIT — {t['symbol']}*\n"
-                        f"  Reached: `{tp}` ✓\n"
-                        f"  Profit:  `+${profit}`  (+{rr}x R)\n"
-                        f"  Balance: `${s['account_balance']}`\n"
-                    )
-                    if next_tp:
-                        msg += f"  TP{i+2} still active at `{next_tp}`"
-                    else:
-                        msg += "  🏁 Trade fully closed."
-                    send_fn(chat_id, msg)
+                # ── Check TPs ────────────────────────────────────────────────────
+                for i, tp in enumerate(t["tps"]):
+                    if i in t["tps_hit"]:
+                        continue
+                    tp_hit = (is_long and candle_high is not None and candle_high >= tp) or \
+                             (not is_long and candle_low is not None and candle_low <= tp)
 
-    _save_trades([t for t in trades if t["status"] == "OPEN"])
-    if updated:
-        _save_history(history)
+                    if tp_hit:
+                        profit = t["tp_profits"][i] if i < len(t.get("tp_profits", [])) else \
+                                 round(abs(tp - t["entry"]) * t["size_units"], 4)
+                        rr     = round(profit / t["risk_usd"], 2) if t["risk_usd"] > 0 else 0
+                        t["tps_hit"].append(i)
+                        updated = True
+
+                        # Partial close — record P&L for TP1/TP2, full close at TP3
+                        if i == len(t["tps"]) - 1:
+                            t["status"]     = "CLOSED"
+                            t["exit_price"] = tp
+                            t["pnl_usd"]    = profit
+                            t["rr_actual"]  = rr
+                            t["closed_at"]  = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+                            history.append(t)
+                            record_trade_close(profit)
+                        else:
+                            record_trade_close(profit)
+
+                        s = load_settings()
+                        next_tp = t["tps"][i + 1] if i + 1 < len(t["tps"]) else None
+
+                        if send_fn and chat_id:
+                            msg = (
+                                f"🎯 *TP{i+1} HIT — {t['symbol']}*\n"
+                                f"  Reached: `{tp}` ✓\n"
+                                f"  Profit:  `+${profit}`  (+{rr}x R)\n"
+                                f"  Balance: `${s['account_balance']}`\n"
+                            )
+                            if next_tp:
+                                msg += f"  TP{i+2} still active at `{next_tp}`"
+                            else:
+                                msg += "  🏁 Trade fully closed."
+                            send_fn(chat_id, msg)
+
+            except Exception as trade_err:
+                tb = traceback.format_exc()
+                print(f"[TRADE_MONITOR_ERROR] Exception checking trade {t.get('id')} ({t.get('symbol')}): {trade_err}\n{tb}", file=sys.stderr)
+                continue
+
+        _save_trades([t for t in trades if t["status"] == "OPEN"])
+        if updated:
+            _save_history(history)
 
 
 def _monitor_loop(send_fn, interval: int):
@@ -315,8 +374,9 @@ def _monitor_loop(send_fn, interval: int):
     while True:
         try:
             _check_trades(send_fn)
-        except Exception:
-            pass
+        except Exception as e:
+            tb = traceback.format_exc()
+            print(f"[TRADE_MONITOR_CRITICAL] Unhandled exception in monitor loop: {e}\n{tb}", file=sys.stderr)
         time.sleep(interval)
 
 

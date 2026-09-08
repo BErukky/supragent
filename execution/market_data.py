@@ -70,9 +70,9 @@ def validate_ohlc(df):
 def fetch_via_ccxt(symbol, timeframe, limit):
     """Fetches data from CCXT exchanges (Binance/Bybit/Kraken)."""
     exchanges = [
-        ('binance', ccxt.binance()),
-        ('bybit', ccxt.bybit()),
-        ('kraken', ccxt.kraken())
+        ('binance', ccxt.binance({'timeout': 5000})),
+        ('bybit', ccxt.bybit({'timeout': 5000})),
+        ('kraken', ccxt.kraken({'timeout': 5000}))
     ]
     
     for exchange_name, exchange in exchanges:
@@ -117,7 +117,7 @@ def fetch_via_twelvedata(symbol, timeframe, limit):
         url = (
             f"https://api.twelvedata.com/time_series"
             f"?symbol={pair}&interval={interval}"
-            f"&outputsize={limit}&apikey={api_key}&format=JSON"
+            f"&outputsize={limit}&apikey={api_key}&timezone=UTC&format=JSON"
         )
         print(f"  Trying Twelve Data: {pair} ({interval})")
         resp = requests.get(url, timeout=10)
@@ -132,7 +132,7 @@ def fetch_via_twelvedata(symbol, timeframe, limit):
             if 'values' in data:
                 values = data['values']
                 df = pd.DataFrame([{
-                    'timestamp': int(pd.to_datetime(v['datetime']).timestamp() * 1000),
+                    'timestamp': int(pd.to_datetime(v['datetime'], utc=True).timestamp() * 1000),
                     'open': float(v['open']),
                     'high': float(v['high']),
                     'low': float(v['low']),
@@ -216,7 +216,7 @@ def fetch_via_yfinance(symbol, timeframe, limit, _retries=2):
     SYMBOL_MAP = {
         "BTC/USD": "BTC-USD", "ETH/USD": "ETH-USD", "SOL/USD": "SOL-USD",
         "XRP/USD": "XRP-USD", "ADA/USD": "ADA-USD", "DOGE/USD": "DOGE-USD",
-        "XAU/USD": "GC=F", "XAG/USD": "SI=F", "OIL/USD": "CL=F",
+        "XAU/USD": "PAXG-USD", "XAG/USD": "SI=F", "OIL/USD": "CL=F",
         "SP500": "^GSPC", "NASDAQ": "^IXIC", "DOW": "^DJI"
     }
     _FIAT = {'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'NZD', 'CAD'}

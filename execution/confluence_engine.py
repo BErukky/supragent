@@ -272,7 +272,8 @@ def run_confluence_analysis(htf_csv, ltf_csv, itf_csv=None, dtf_csv=None):
             "htf_layer1":        htf_analysis,
             "itf_layer1":        itf_analysis,
             "ltf_layer1":        ltf_analysis,
-            "raw_ltf_structure": ltf_analysis['raw_structure']
+            "raw_ltf_structure": ltf_analysis['raw_structure'],
+            "ltf_last_close":    ltf_analysis.get("last_close")
         }
     }
 

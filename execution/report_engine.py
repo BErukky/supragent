@@ -163,6 +163,55 @@ def calculate_lot_size(symbol: str, position_units: float, risk_pips: float,
     }
 
 
+def _resolve_current_price(symbol: str, str_data: dict = None) -> float:
+    """
+    Resolves the most accurate live/current market price for signal calculation.
+    Priority:
+    1. _get_live_price(symbol) from trade_tracker (Twelve Data /price, CCXT, yfinance fast-ticker)
+    2. ltf_l1['last_close'] or details['ltf_last_close'] from the latest closed candle
+    3. Latest close from .tmp/{symbol}_{tf}.csv
+    4. Last resort: raw_ltf_structure last pivot price
+    """
+    # 1. Live-tick price (highest accuracy, real-time)
+    try:
+        from trade_tracker import _get_live_price
+        live_p = _get_live_price(symbol)
+        if live_p is not None and live_p > 0:
+            return float(live_p)
+    except Exception:
+        pass
+
+    # 2. Latest candle close from structure/confluence layer
+    if isinstance(str_data, dict):
+        details = str_data.get("details", {})
+        ltf_l1 = details.get("ltf_layer1", {}) if isinstance(details, dict) else {}
+        if ltf_l1.get("last_close") and float(ltf_l1["last_close"]) > 0:
+            return float(ltf_l1["last_close"])
+        if details.get("ltf_last_close") and float(details["ltf_last_close"]) > 0:
+            return float(details["ltf_last_close"])
+
+    # 3. Read directly from recent CSV
+    try:
+        import pandas as pd
+        safe_sym = symbol.replace("/", "_")
+        for tf in ["15m", "5m", "1m", "1h", "4h", "1d"]:
+            csv_path = os.path.join(".tmp", f"{safe_sym}_{tf}.csv")
+            if os.path.exists(csv_path):
+                df = pd.read_csv(csv_path)
+                if not df.empty and "close" in df.columns:
+                    return float(df["close"].iloc[-1])
+    except Exception:
+        pass
+
+    # 4. Last resort: structural pivot point
+    if isinstance(str_data, dict):
+        ltf_struct = str_data.get("details", {}).get("raw_ltf_structure", [])
+        if ltf_struct and "price" in ltf_struct[-1]:
+            return float(ltf_struct[-1]["price"])
+
+    return 0.0
+
+
 def calculate_v2_risk(action, str_data, news_penalty, external_data=None, symbol="UNKNOWN"):
     """
     Phase 11: Precision Execution Engine (High R:R).
@@ -175,13 +224,18 @@ def calculate_v2_risk(action, str_data, news_penalty, external_data=None, symbol
     if "LOCKED" in action.upper():
         return None
 
-    details = str_data.get("details", {})
-    ltf_l1 = details.get("ltf_layer1", {})
-    ltf_struct = details.get("raw_ltf_structure", [])
-    if not ltf_struct: 
-        return None
+    details = str_data.get("details", {}) if isinstance(str_data, dict) else {}
+    ltf_l1 = details.get("ltf_layer1", {}) if isinstance(details, dict) else {}
+    ltf_struct = details.get("raw_ltf_structure", []) if isinstance(details, dict) else []
 
-    last_price = float(ltf_struct[-1]['price'])
+    # Resolve live/current market price for reference and fallback
+    last_price = _resolve_current_price(symbol, str_data)
+    if last_price <= 0:
+        if ltf_struct:
+            last_price = float(ltf_struct[-1]['price'])
+        else:
+            return None
+
     atr = ltf_l1.get("atr", 0) or (last_price * 0.005)
 
     is_long = "LONG" in action
@@ -350,6 +404,7 @@ def calculate_v2_risk(action, str_data, news_penalty, external_data=None, symbol
 
     return {
         "ENTRY_PRICE":        smart_round(entry_price),
+        "CURRENT_PRICE":      smart_round(last_price),
         "ENTRY_TYPE":         f"LIMIT ({best_entry['type']})" if best_entry['type'] != "MARKET_FALLBACK" else "MARKET",
         "STOP_LOSS":          smart_round(sl_price),
         "TAKE_PROFIT":        [smart_round(tp) for tp in tps],
@@ -375,9 +430,7 @@ def log_outcome_prediction(symbol, action, confidence, entry_price, snapshot_clo
     """
     Stores prediction for the feedback loop.
     FIX 2.1: Now records snapshot_close (the actual live close at analysis time)
-    separately from entry_price (last structure point). Previously only entry_price
-    was logged and 'current price' was read from a stale CSV that had been overwritten,
-    making performance_analyzer.py produce meaningless drift numbers.
+    separately from entry_price (limit or market entry).
     """
     log_file = ".tmp/prediction_logs.json"
     entry = {
@@ -386,7 +439,7 @@ def log_outcome_prediction(symbol, action, confidence, entry_price, snapshot_clo
         "action": action,
         "confidence": confidence,
         "entry_price": entry_price,
-        "snapshot_close": snapshot_close,  # Actual market close at time of signal
+        "snapshot_close": snapshot_close,  # Actual market close/tick at time of signal
         "outcome_checked": False           # Set to True by performance_analyzer after evaluation
     }
     logs = []
@@ -434,10 +487,10 @@ def generate_report(symbol, str_data, hist_data, news_data):
                 risk["RR_RATIO"] = rr_ratio
                 risk["RR_GATE"]  = rr_gate
 
-        # Feedback loop logging
-        ltf_struct    = str_data.get("details", {}).get("raw_ltf_structure", [])
-        last_p        = ltf_struct[-1]['price'] if ltf_struct else 0
-        snapshot_close = last_p
+        # Feedback loop logging with resolved real-time price
+        current_market_price = _resolve_current_price(symbol, str_data)
+        snapshot_close = current_market_price if current_market_price > 0 else (risk.get("ENTRY_PRICE", 0) if risk else 0)
+        last_p = risk.get("ENTRY_PRICE", snapshot_close) if risk else snapshot_close
         log_outcome_prediction(symbol, action, conf, last_p, snapshot_close)
 
         # Governance Alerts
@@ -484,7 +537,7 @@ def generate_report(symbol, str_data, hist_data, news_data):
         if conf >= 85 and "WAIT" not in action:
             msg = (
                 f"SUPER SIGNAL ALERT\n\n*Symbol:* {symbol}\n"
-                f"*Signal:* {action}\n*Confidence:* {conf}/100\n*Price:* {last_p}"
+                f"*Signal:* {action}\n*Confidence:* {conf}/100\n*Price:* {snapshot_close}"
             )
             if risk:
                 msg += f"\n*TP:* {risk.get('TAKE_PROFIT')[0]}\n*SL:* {risk.get('STOP_LOSS')}"
