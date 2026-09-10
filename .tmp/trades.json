@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "id": "EUR_USD_1789036504",
+    "signal_id": "sig-eur-5684e93c",
+    "symbol": "EUR/USD",
+    "direction": "LONG",
+    "entry": 1.085,
+    "sl": 1.082,
+    "tps": [
+      1.091,
+      1.095
+    ],
+    "tp_profits": [
+      60.0,
+      100.0
+    ],
+    "size_units": 10000,
+    "risk_usd": 30.0,
+    "tps_hit": [],
+    "status": "OPEN",
+    "opened_at": "2026-09-10 10:35 UTC",
+    "chat_id": "999888777"
+  }
+]

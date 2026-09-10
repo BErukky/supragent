@@ -83,7 +83,7 @@ def is_weekend() -> bool:
 _SIGNALS_LOG = os.path.join(os.path.dirname(__file__), '..', '.tmp', 'signals_log.json')
 
 def _persist_signal(chat_id, symbol: str, report: dict, stack: str):
-    """Appends the signal (with its SIGNAL_ID) to the durable signals log."""
+    """Appends the signal (with its SIGNAL_ID and full report) to the durable signals log."""
     entry = {
         "signal_id": report.get("SIGNAL_ID"),
         "chat_id":   str(chat_id),
@@ -91,7 +91,9 @@ def _persist_signal(chat_id, symbol: str, report: dict, stack: str):
         "stack":     stack,
         "signal":    report.get("FINAL_SIGNAL"),
         "confidence":report.get("CONFIDENCE"),
+        "report":    report,
         "ts":        report.get("TIMESTAMP", datetime.now().strftime("%Y-%m-%d %H:%M")),
+        "created_at": time.time(),
     }
     try:
         os.makedirs(os.path.dirname(_SIGNALS_LOG), exist_ok=True)
@@ -100,10 +102,37 @@ def _persist_signal(chat_id, symbol: str, report: dict, stack: str):
             with open(_SIGNALS_LOG, "r") as f:
                 existing = json.load(f)
         existing.append(entry)
+        if len(existing) > 50:
+            existing = existing[-50:]
         with open(_SIGNALS_LOG, "w") as f:
             json.dump(existing, f, indent=2)
     except Exception as e:
         log("WARN", "signal_persist_failed", error=str(e))
+
+
+def _get_persisted_signal(signal_id: str = None, symbol: str = None, chat_id: str = None) -> dict | None:
+    """Finds a signal in .tmp/signals_log.json by signal_id or most recent symbol."""
+    try:
+        if os.path.exists(_SIGNALS_LOG):
+            with open(_SIGNALS_LOG, "r") as f:
+                logs = json.load(f)
+            if signal_id:
+                for entry in reversed(logs):
+                    if entry.get("signal_id") == signal_id:
+                        return entry
+            if symbol:
+                sym_clean = symbol.upper().replace(" ", "")
+                for entry in reversed(logs):
+                    if entry.get("symbol", "").upper().replace(" ", "") == sym_clean:
+                        if not chat_id or str(entry.get("chat_id")) == str(chat_id):
+                            return entry
+            if chat_id:
+                for entry in reversed(logs):
+                    if str(entry.get("chat_id")) == str(chat_id):
+                        return entry
+    except Exception as e:
+        log("WARN", "get_persisted_signal_failed", error=str(e))
+    return None
 
 
 # ─── Last signal cache for inline trade registration ──────────────────────────
@@ -245,12 +274,14 @@ def register_bot_commands():
         log("WARN", "set_commands_exception", error=str(e))
 
 
-def _took_trade_keyboard():
+def _took_trade_keyboard(symbol: str = "", signal_id: str = ""):
     """Inline keyboard shown below every signal."""
+    took_data = f"took:{symbol}:{signal_id}" if symbol and signal_id else "took_trade"
+    skip_data = f"skip:{symbol}:{signal_id}" if symbol and signal_id else "skip_trade"
     return {
         "inline_keyboard": [[
-            {"text": "✅ Took This Trade", "callback_data": "took_trade"},
-            {"text": "❌ Skip",            "callback_data": "skip_trade"},
+            {"text": "✅ Took This Trade", "callback_data": took_data},
+            {"text": "❌ Skip",            "callback_data": skip_data},
         ]]
     }
 
@@ -524,7 +555,7 @@ def _handle_analyze(chat_id, args):
             }
             _persist_signal(chat_id, symbol, report, stack_arg)
             is_locked = "LOCKED" in (report.get("FINAL_SIGNAL") or "").upper()
-            send_message(chat_id, panel, reply_markup=None if is_locked else _took_trade_keyboard())
+            send_message(chat_id, panel, reply_markup=None if is_locked else _took_trade_keyboard(symbol, report.get("SIGNAL_ID", "")))
             log("INFO", "analyze_complete", chat_id=chat_id, symbol=symbol,
                 signal=report.get("FINAL_SIGNAL"), conf=report.get("CONFIDENCE"),
                 signal_id=report.get("SIGNAL_ID"), news=run_news)
@@ -624,7 +655,7 @@ def _handle_mtf(chat_id, args):
             }
             _persist_signal(chat_id, symbol, report, stack)
             is_locked = "LOCKED" in (report.get("FINAL_SIGNAL") or "").upper()
-            send_message(chat_id, panel, reply_markup=None if is_locked else _took_trade_keyboard())
+            send_message(chat_id, panel, reply_markup=None if is_locked else _took_trade_keyboard(symbol, report.get("SIGNAL_ID", "")))
             log("INFO", "mtf_complete", chat_id=chat_id, symbol=symbol,
                 tf=tf, stack=stack, signal=report.get("FINAL_SIGNAL"),
                 conf=report.get("CONFIDENCE"), signal_id=report.get("SIGNAL_ID"),
@@ -700,7 +731,7 @@ def _handle_scalp(chat_id, args):
             }
             _persist_signal(chat_id, symbol, best_report, best.get("stack", ""))
             is_locked = "LOCKED" in (best_report.get("FINAL_SIGNAL") or "").upper()
-            send_message(chat_id, panel, reply_markup=None if is_locked else _took_trade_keyboard())
+            send_message(chat_id, panel, reply_markup=None if is_locked else _took_trade_keyboard(symbol, best_report.get("SIGNAL_ID", "")))
             log("INFO", "scalp_complete", chat_id=chat_id, symbol=symbol, stack=best_stack,
                 signal_id=best_report.get("SIGNAL_ID"))
 
@@ -713,28 +744,54 @@ def _handle_scalp(chat_id, args):
     threading.Thread(target=_run_scalp_work, daemon=True).start()
 
 
-def _handle_took_trade(chat_id):
-    """Registers the last signal as a taken trade."""
-    cached = _LAST_SIGNAL.get(chat_id)
-    if not cached or (time.time() - cached["ts"]) > 600:
+def _handle_took_trade(chat_id, symbol: str = None, signal_id: str = None):
+    """Registers the signal as a taken trade (by signal_id from callback, symbol, or last signal)."""
+    entry = None
+    if signal_id:
+        entry = _get_persisted_signal(signal_id=signal_id)
+    elif symbol:
+        entry = _get_persisted_signal(symbol=symbol, chat_id=str(chat_id))
+    
+    if not entry and not signal_id and not symbol:
+        entry = _get_persisted_signal(chat_id=str(chat_id))
+
+    report = None
+    trade_symbol = symbol
+
+    if entry:
+        report = entry.get("report")
+        trade_symbol = entry.get("symbol", symbol)
+        # Check expiration (10 min)
+        created_at = entry.get("created_at", 0)
+        if created_at and (time.time() - created_at) > 600:
+            send_message(chat_id, "⚠️ Signal has expired (signals expire after 10 min). Run `/analyze` again for fresh levels.")
+            return
+
+    # Fallback to memory cache only if not found in signals log
+    if not report:
+        cached = _LAST_SIGNAL.get(chat_id)
+        if cached and (time.time() - cached.get("ts", 0)) <= 600:
+            if not symbol or cached.get("symbol", "").upper() == symbol.upper():
+                report = cached.get("report")
+                trade_symbol = cached.get("symbol")
+
+    if not report:
         send_message(chat_id, "⚠️ No recent signal found (last signal expires after 10 min). Run `/analyze` first.")
         return
 
-    symbol  = cached["symbol"]
-    report  = cached["report"]
-    risk    = (report.get("RISK_ADVISORY") or {})
+    risk = (report.get("RISK_ADVISORY") or {})
 
     if "LOCKED" in (report.get("FINAL_SIGNAL") or "").upper():
         send_message(chat_id, "⛔ *Trade Locked*: Cannot register trade. Orders are blocked due to critical risk.")
         return
 
     if not risk.get("ENTRY_PRICE"):
-        send_message(chat_id, "⚠️ No valid trade setup in the last signal (WAIT signal).")
+        send_message(chat_id, "⚠️ No valid trade setup in this signal (WAIT signal).")
         return
 
-    direction = "LONG" if "LONG" in report.get("FINAL_SIGNAL", "") else "SHORT"
+    direction = "LONG" if any(w in (report.get("FINAL_SIGNAL") or "").upper() for w in ["LONG", "BUY", "BULL"]) else "SHORT"
     trade = register_trade(
-        symbol      = symbol,
+        symbol      = trade_symbol,
         direction   = direction,
         entry       = risk["ENTRY_PRICE"],
         sl          = risk["STOP_LOSS"],
@@ -743,12 +800,12 @@ def _handle_took_trade(chat_id):
         risk_usd    = risk.get("RISK_AMOUNT_USD", 0),
         tp_profits  = risk.get("TP_PROFIT_USD", []),
         chat_id     = str(chat_id),
-        signal_id   = report.get("SIGNAL_ID"),
+        signal_id   = report.get("SIGNAL_ID") or signal_id,
     )
 
     s = load_settings()
     send_message(chat_id,
-        f"✅ *Trade Registered — {symbol}*\n"
+        f"✅ *Trade Registered — {trade_symbol}*\n"
         f"  Direction: `{direction}`\n"
         f"  Entry:     `{risk['ENTRY_PRICE']}`\n"
         f"  SL:        `{risk['STOP_LOSS']}`\n"
@@ -756,7 +813,7 @@ def _handle_took_trade(chat_id):
         f"  Risk:      `${risk.get('RISK_AMOUNT_USD', 0)}` ({s['risk_per_trade_pct']}% of ${s['account_balance']})\n\n"
         f"📡 _Monitoring price every {s.get('monitor_interval', 300)//60} min..._"
     )
-    log("INFO", "trade_registered", chat_id=chat_id, symbol=symbol, direction=direction)
+    log("INFO", "trade_registered", chat_id=chat_id, symbol=trade_symbol, direction=direction, signal_id=signal_id)
 
 
 def _handle_close(chat_id, args):
@@ -882,7 +939,8 @@ def process_command(chat_id, command, args):
     # ── Trade tracker commands ─────────────────────────────────────────────────
     elif cmd == "/took":
         # Allow /took BTC/USD (optional, uses last signal if no symbol given)
-        _handle_took_trade(chat_id)
+        target_sym = args[0].upper().replace(" ", "") if args else None
+        threading.Thread(target=_handle_took_trade, args=(chat_id, target_sym), daemon=True).start()
 
     elif cmd == "/trades":
         send_message(chat_id, format_open_trades())
@@ -910,7 +968,13 @@ def handle_callback(query):
 
     if data == "took_trade":
         threading.Thread(target=_handle_took_trade, args=(chat_id,), daemon=True).start()
-    elif data == "skip_trade":
+    elif data.startswith("took:"):
+        # Format: took:SYMBOL:SIGNAL_ID
+        parts = data.split(":", 2)
+        sym = parts[1] if len(parts) > 1 else None
+        sig_id = parts[2] if len(parts) > 2 else None
+        threading.Thread(target=_handle_took_trade, args=(chat_id, sym, sig_id), daemon=True).start()
+    elif data == "skip_trade" or data.startswith("skip:"):
         send_message(chat_id, "⏭️ Signal skipped. No trade recorded.")
     elif data.startswith("symcmd:"):
         parts = data.split(":")

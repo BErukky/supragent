@@ -475,5 +475,32 @@
     "entry_price": 2472.86,
     "snapshot_close": 2472.86,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 11:10:34.305341",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 77980.06,
+    "snapshot_close": 77980.06,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 11:10:59.753333",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 77980.07,
+    "snapshot_close": 77980.07,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 11:15:45.094420",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 51.57,
+    "entry_price": 78014.0,
+    "snapshot_close": 78014.01,
+    "outcome_checked": false
   }
 ]

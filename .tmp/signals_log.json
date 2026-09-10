@@ -1,0 +1,76 @@
+[
+  {
+    "signal_id": "sig-eur-5684e93c",
+    "chat_id": "999888777",
+    "symbol": "EUR/USD",
+    "stack": "intraday",
+    "signal": "STRONG LONG",
+    "confidence": 85,
+    "report": {
+      "SIGNAL_ID": "sig-eur-5684e93c",
+      "FINAL_SIGNAL": "STRONG LONG",
+      "CONFIDENCE": 85,
+      "RISK_ADVISORY": {
+        "ENTRY_PRICE": 1.085,
+        "ENTRY_TYPE": "MARKET",
+        "STOP_LOSS": 1.082,
+        "TAKE_PROFIT": [
+          1.091,
+          1.095
+        ],
+        "POSITION_SIZE_UNITS": 10000,
+        "RISK_AMOUNT_USD": 30.0,
+        "TP_PROFIT_USD": [
+          60.0,
+          100.0
+        ],
+        "ACCOUNT_BALANCE": 1000,
+        "RISK_PER_TRADE_PCT": 3
+      },
+      "REASONING": {
+        "l2_confluence": "BULLISH 85%",
+        "l3_history": "80%"
+      },
+      "TIMESTAMP": "2026-09-10 11:30"
+    },
+    "ts": "2026-09-10 11:30",
+    "created_at": 1789036504.0022452
+  },
+  {
+    "signal_id": "sig-gbp-5f0f1fca",
+    "chat_id": "999888777",
+    "symbol": "GBP/USD",
+    "stack": "intraday",
+    "signal": "STRONG SHORT",
+    "confidence": 88,
+    "report": {
+      "SIGNAL_ID": "sig-gbp-5f0f1fca",
+      "FINAL_SIGNAL": "STRONG SHORT",
+      "CONFIDENCE": 88,
+      "RISK_ADVISORY": {
+        "ENTRY_PRICE": 1.295,
+        "ENTRY_TYPE": "MARKET",
+        "STOP_LOSS": 1.299,
+        "TAKE_PROFIT": [
+          1.287,
+          1.283
+        ],
+        "POSITION_SIZE_UNITS": 8000,
+        "RISK_AMOUNT_USD": 32.0,
+        "TP_PROFIT_USD": [
+          64.0,
+          96.0
+        ],
+        "ACCOUNT_BALANCE": 1000,
+        "RISK_PER_TRADE_PCT": 3
+      },
+      "REASONING": {
+        "l2_confluence": "BEARISH 88%",
+        "l3_history": "85%"
+      },
+      "TIMESTAMP": "2026-09-10 11:31"
+    },
+    "ts": "2026-09-10 11:31",
+    "created_at": 1789036504.0544055
+  }
+]
