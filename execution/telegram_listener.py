@@ -147,6 +147,104 @@ def answer_callback(callback_id, text="✅"):
         pass
 
 
+RECENT_SYMBOLS_FILE = os.path.join(os.path.dirname(__file__), '..', '.tmp', 'recent_symbols.json')
+_RECENT_SYMBOLS_LOCK = threading.RLock()
+DEFAULT_SYMBOLS = ["XAU/USD", "BTC/USD", "GBP/USD", "EUR/USD", "ETH/USD"]
+
+def _load_recent_symbols(chat_id) -> list:
+    """Returns list of 3-5 recent symbols for chat_id, or defaults if none."""
+    cid_str = str(chat_id)
+    with _RECENT_SYMBOLS_LOCK:
+        try:
+            if os.path.exists(RECENT_SYMBOLS_FILE):
+                with open(RECENT_SYMBOLS_FILE, "r") as f:
+                    data = json.load(f)
+                    user_list = data.get(cid_str, [])
+                    if user_list:
+                        combined = []
+                        for s in user_list + DEFAULT_SYMBOLS:
+                            s_up = s.upper()
+                            if s_up not in combined:
+                                combined.append(s_up)
+                        return combined[:5]
+        except Exception:
+            pass
+    return DEFAULT_SYMBOLS[:4]
+
+
+def _record_recent_symbol(chat_id, symbol: str):
+    """Records symbol in user's recent list (most recent first, max 5)."""
+    if not symbol or not chat_id:
+        return
+    cid_str = str(chat_id)
+    sym_upper = symbol.upper().strip()
+    with _RECENT_SYMBOLS_LOCK:
+        try:
+            os.makedirs(os.path.dirname(RECENT_SYMBOLS_FILE), exist_ok=True)
+            data = {}
+            if os.path.exists(RECENT_SYMBOLS_FILE):
+                with open(RECENT_SYMBOLS_FILE, "r") as f:
+                    data = json.load(f)
+            current = data.get(cid_str, [])
+            new_list = [sym_upper] + [s for s in current if s.upper() != sym_upper]
+            data[cid_str] = new_list[:5]
+            with open(RECENT_SYMBOLS_FILE, "w") as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            log("WARN", "record_recent_symbol_failed", error=str(e))
+
+
+def _symbol_suggestion_keyboard(command_name: str, chat_id):
+    """
+    Builds an inline keyboard with buttons for recent/default symbols.
+    command_name: e.g. 'analyze', 'scalp', 'mtf'
+    """
+    symbols = _load_recent_symbols(chat_id)
+    keyboard = []
+    row = []
+    for sym in symbols:
+        row.append({
+            "text": sym,
+            "callback_data": f"symcmd:{command_name}:{sym}"
+        })
+        if len(row) == 2:
+            keyboard.append(row)
+            row = []
+    if row:
+        keyboard.append(row)
+    return {"inline_keyboard": keyboard}
+
+
+def register_bot_commands():
+    """Registers bot commands with Telegram via setMyCommands API for native autocomplete."""
+    commands = [
+        {"command": "analyze",    "description": "Full confluence analysis (e.g. /analyze XAU/USD)"},
+        {"command": "scalp",      "description": "Multi-timeframe AI scalp analysis (/scalp BTC/USD)"},
+        {"command": "mtf",        "description": "Single timeframe analysis (/mtf BTC/USD 1D)"},
+        {"command": "scan",       "description": "Scan watchlist for top setups"},
+        {"command": "scan_tech",  "description": "Fast technical scan (no news)"},
+        {"command": "trades",     "description": "View active open trades & live P&L"},
+        {"command": "took",       "description": "Record entry on last generated signal"},
+        {"command": "close",      "description": "Close an open trade (/close SYMBOL PRICE)"},
+        {"command": "history",    "description": "View recent closed trade history"},
+        {"command": "stats",      "description": "View win rate, avg R:R & net P&L"},
+        {"command": "settings",   "description": "View current risk & balance settings"},
+        {"command": "setbalance", "description": "Set account balance (/setbalance 100)"},
+        {"command": "setrisk",    "description": "Set risk % per trade (/setrisk 2)"},
+        {"command": "setdrawdown","description": "Set daily drawdown limit % (/setdrawdown 50)"},
+        {"command": "resetday",   "description": "Reset daily drawdown counter"},
+        {"command": "help",       "description": "Show help and command guide"}
+    ]
+    try:
+        r = requests.post(f"{BASE_URL}/setMyCommands", json={"commands": commands}, timeout=10)
+        if r.status_code == 200 and r.json().get("ok"):
+            log("INFO", "bot_commands_registered", count=len(commands))
+        else:
+            log("WARN", "set_commands_failed", response=r.text)
+    except Exception as e:
+        log("WARN", "set_commands_exception", error=str(e))
+
+
 def _took_trade_keyboard():
     """Inline keyboard shown below every signal."""
     return {
@@ -371,10 +469,14 @@ def _handle_analyze(chat_id, args):
 
     VALID_STACKS = list(TF_STACKS.keys())
     if not args:
-        send_message(chat_id, "⚠️ Usage: `/analyze SYMBOL [stack]`\ne.g. `/analyze BTC/USD` or `/analyze BTC/USD swing`")
+        send_message(chat_id,
+            "🔍 *Select a symbol to analyze:*\n"
+            "Tap a recent symbol below or type `/analyze SYMBOL`",
+            reply_markup=_symbol_suggestion_keyboard("analyze", chat_id))
         return
 
     symbol    = args[0].upper().replace(" ", "")
+    _record_recent_symbol(chat_id, symbol)
     stack_arg = args[1].lower() if len(args) > 1 else "intraday"
     if stack_arg not in VALID_STACKS:
         send_message(chat_id, f"⚠️ Unknown stack `{stack_arg}`. Valid: `{', '.join(VALID_STACKS)}`")
@@ -465,12 +567,15 @@ def _handle_mtf(chat_id, args):
         send_message(chat_id, f"⏳ MTF cooldown: *{wait}s* remaining.")
         return
 
-    if len(args) < 2:
+    if not args:
         send_message(chat_id,
-            f"⚠️ Usage: `/mtf SYMBOL TIMEFRAME`\n"
-            f"e.g. `/mtf BTC/USD 1D` or `/mtf GBP/USD H4`\n"
-            f"Valid timeframes: `{_VALID_TF_DISPLAY}`")
+            "⏱️ *Select a symbol for MTF analysis:*\n"
+            "Tap a symbol below (defaults to 1H) or type `/mtf SYMBOL TIMEFRAME`",
+            reply_markup=_symbol_suggestion_keyboard("mtf", chat_id))
         return
+
+    if len(args) == 1:
+        args = [args[0], "1h"]
 
     symbol   = args[0].upper().replace(" ", "")
     tf_input = args[1].lower().replace(" ", "")
@@ -481,6 +586,8 @@ def _handle_mtf(chat_id, args):
             f"⚠️ Unknown timeframe `{args[1].upper()}`.\n"
             f"Valid options: `{_VALID_TF_DISPLAY}`")
         return
+
+    _record_recent_symbol(chat_id, symbol)
 
     if is_fx_pair(symbol) and is_weekend():
         send_message(chat_id, "⚪ *Forex Market Closed* — MTF analysis resumes Monday.")
@@ -537,10 +644,14 @@ def _handle_scalp(chat_id, args):
         return
 
     if not args:
-        send_message(chat_id, "⚠️ Usage: `/scalp SYMBOL`\ne.g. `/scalp BTC/USD`")
+        send_message(chat_id,
+            "⚡ *Select a symbol for scalp analysis:*\n"
+            "Tap a recent symbol below or type `/scalp SYMBOL`",
+            reply_markup=_symbol_suggestion_keyboard("scalp", chat_id))
         return
 
     symbol = args[0].upper().replace(" ", "")
+    _record_recent_symbol(chat_id, symbol)
 
     blocked, reason = is_drawdown_limit_hit()
     if blocked:
@@ -790,7 +901,7 @@ def process_command(chat_id, command, args):
 
 
 def handle_callback(query):
-    """Handles inline button presses (Took Trade / Skip)."""
+    """Handles inline button presses (Took Trade / Skip / Symbol Selection)."""
     chat_id     = query["message"]["chat"]["id"]
     callback_id = query["id"]
     data        = query.get("data", "")
@@ -801,11 +912,25 @@ def handle_callback(query):
         threading.Thread(target=_handle_took_trade, args=(chat_id,), daemon=True).start()
     elif data == "skip_trade":
         send_message(chat_id, "⏭️ Signal skipped. No trade recorded.")
+    elif data.startswith("symcmd:"):
+        parts = data.split(":")
+        if len(parts) >= 3:
+            cmd = parts[1]
+            sym = parts[2]
+            if cmd == "analyze":
+                threading.Thread(target=_handle_analyze, args=(chat_id, [sym]), daemon=True).start()
+            elif cmd == "scalp":
+                threading.Thread(target=_handle_scalp, args=(chat_id, [sym]), daemon=True).start()
+            elif cmd == "mtf":
+                threading.Thread(target=_handle_mtf, args=(chat_id, [sym, "1h"]), daemon=True).start()
 
 
 # ─── Main Loop ────────────────────────────────────────────────────────────────
 
 def main_loop():
+    # Register native Telegram autocomplete command menu
+    register_bot_commands()
+
     # Start background trade price monitor
     monitor_interval = int(os.environ.get("MONITOR_INTERVAL", 300))
     start_monitor(send_fn=lambda cid, txt: send_message(cid, txt), interval=monitor_interval)
