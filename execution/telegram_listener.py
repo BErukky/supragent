@@ -462,17 +462,17 @@ def _settings_file_exists() -> bool:
 
 
 def _handle_analyze(chat_id, args):
-    wait = check_rate_limit(chat_id, "analyze")
-    if wait:
-        send_message(chat_id, f"⏳ Please wait *{wait}s* before another `/analyze`.")
-        return
-
     VALID_STACKS = list(TF_STACKS.keys())
     if not args:
         send_message(chat_id,
             "🔍 *Select a symbol to analyze:*\n"
             "Tap a recent symbol below or type `/analyze SYMBOL`",
             reply_markup=_symbol_suggestion_keyboard("analyze", chat_id))
+        return
+
+    wait = check_rate_limit(chat_id, "analyze")
+    if wait:
+        send_message(chat_id, f"⏳ Please wait *{wait}s* before another `/analyze`.")
         return
 
     symbol    = args[0].upper().replace(" ", "")
@@ -562,11 +562,6 @@ _TF_TO_STACK = {
 
 
 def _handle_mtf(chat_id, args):
-    wait = check_rate_limit(chat_id, "mtf")
-    if wait:
-        send_message(chat_id, f"⏳ MTF cooldown: *{wait}s* remaining.")
-        return
-
     if not args:
         send_message(chat_id,
             "⏱️ *Select a symbol for MTF analysis:*\n"
@@ -585,6 +580,11 @@ def _handle_mtf(chat_id, args):
         send_message(chat_id,
             f"⚠️ Unknown timeframe `{args[1].upper()}`.\n"
             f"Valid options: `{_VALID_TF_DISPLAY}`")
+        return
+
+    wait = check_rate_limit(chat_id, "mtf")
+    if wait:
+        send_message(chat_id, f"⏳ MTF cooldown: *{wait}s* remaining.")
         return
 
     _record_recent_symbol(chat_id, symbol)
@@ -638,16 +638,16 @@ def _handle_mtf(chat_id, args):
 
 
 def _handle_scalp(chat_id, args):
-    wait = check_rate_limit(chat_id, "scalp")
-    if wait:
-        send_message(chat_id, f"⏳ Scalp cooldown: *{wait}s* remaining.")
-        return
-
     if not args:
         send_message(chat_id,
             "⚡ *Select a symbol for scalp analysis:*\n"
             "Tap a recent symbol below or type `/scalp SYMBOL`",
             reply_markup=_symbol_suggestion_keyboard("scalp", chat_id))
+        return
+
+    wait = check_rate_limit(chat_id, "scalp")
+    if wait:
+        send_message(chat_id, f"⏳ Scalp cooldown: *{wait}s* remaining.")
         return
 
     symbol = args[0].upper().replace(" ", "")
