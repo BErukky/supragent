@@ -1,5 +1,11 @@
 [
   {
+    "text": "Bitcoin trades near $78,000 as memecoins, small caps lead a broad crypto retreat",
+    "source_type": "TIER_1",
+    "domain": "coindesk.com",
+    "timestamp": "2026-09-10 10:24:14"
+  },
+  {
     "text": "Indian agri warehouse giant is putting $2 billion in grain-backed loans onchain",
     "source_type": "TIER_1",
     "domain": "coindesk.com",
@@ -112,11 +118,5 @@
     "source_type": "TIER_1",
     "domain": "coindesk.com",
     "timestamp": "2026-09-09 12:00:00"
-  },
-  {
-    "text": "U.S. Bank takes next step towards launching its stablecoin with cross-border payment test",
-    "source_type": "TIER_1",
-    "domain": "coindesk.com",
-    "timestamp": "2026-09-09 11:40:44"
   }
 ]

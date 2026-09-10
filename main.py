@@ -29,7 +29,7 @@ try:
     from historical_engine import run_historical_analysis, calculate_seasonality_stats
     from news_scraper import run_scraper
     from news_engine import run_news_analysis
-    from report_engine import generate_report
+    from report_engine import generate_report, aggregate_v2_confidence
     from funding_engine import analyze_funding
     from db_manager import ensure_history
     from cme_engine import analyze_cme_gaps
@@ -200,8 +200,22 @@ def _seed_db(symbol: str):
         pass
 
 
+def should_run_news(pre_conf: float, l2_str: str = "") -> bool:
+    """
+    Returns True if news is worth fetching given the current confluence score.
+    Saves API credits on clear signals; adds context on borderline ones.
+    """
+    if pre_conf >= 70:          return False   # already strong
+    if pre_conf < 45:           return False   # too weak to salvage
+    if "KILL_ZONE" in l2_str:   return True    # high-impact session
+    if "LONDON"    in l2_str:   return True
+    if "NEW_YORK"  in l2_str:   return True
+    return True  # borderline 45–69: always run news
+
+
 def run_full_analysis(symbol, stack_name="intraday", htf=None, ltf=None,
-                      itf=None, dtf=None, no_news=False, custom_news=None, use_nlp=False):
+                      itf=None, dtf=None, no_news=False, custom_news=None, use_nlp=False,
+                      smart_news=False):
     """
     Phase 9.3: Modular analysis entry point with named stack support.
     Returns the final report dict.
@@ -239,7 +253,21 @@ def run_full_analysis(symbol, stack_name="intraday", htf=None, ltf=None,
     if not history_json: return {"error": "Historical analysis failed."}
 
     # 4. News (Layer 4)
-    if no_news:
+    effective_no_news = no_news
+    if smart_news and not no_news and not custom_news:
+        dummy_news = {
+            "risk_level": "LOW", "sentiment_score": 0.0,
+            "risk_state": "NORMAL", "final_penalty": 0,
+            "permits_trade": True, "layer4_score": 5.0,
+            "flagged_keywords": [],
+            "reasoning": "Pre-pass"
+        }
+        pre_conf, _ = aggregate_v2_confidence(structure_json, history_json, dummy_news)
+        l2_str = structure_json.get("reasoning", "")
+        if not should_run_news(pre_conf, l2_str):
+            effective_no_news = True
+
+    if effective_no_news:
         news_json = {
             "risk_level": "LOW", "sentiment_score": 0.0,
             "risk_state": "NORMAL", "final_penalty": 0,

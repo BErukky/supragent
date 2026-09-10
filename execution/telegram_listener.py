@@ -533,14 +533,8 @@ def _handle_analyze(chat_id, args):
 
     def _run_analysis_work():
         try:
-            # Phase 1: Fast tech pass (no news) to decide if news worth running
-            pre_report = run_full_analysis(symbol, stack_name=stack_arg, no_news=True, use_nlp=False)
-            pre_conf   = (pre_report or {}).get("CONFIDENCE", 0)
-            l2_str     = ((pre_report or {}).get("REASONING") or {}).get("l2_confluence", "")
-            run_news   = _should_run_news(pre_conf, l2_str)
-
-            # Phase 2: Full analysis (with or without news)
-            report = run_full_analysis(symbol, stack_name=stack_arg, no_news=not run_news, use_nlp=False)
+            # Single-pass analysis with in-flight smart news evaluation
+            report = run_full_analysis(symbol, stack_name=stack_arg, smart_news=True, use_nlp=False)
             if not report or "error" in report:
                 send_message(chat_id, f"⚠️ Analysis failed, please try again")
                 return
@@ -558,7 +552,7 @@ def _handle_analyze(chat_id, args):
             send_message(chat_id, panel, reply_markup=None if is_locked else _took_trade_keyboard(symbol, report.get("SIGNAL_ID", "")))
             log("INFO", "analyze_complete", chat_id=chat_id, symbol=symbol,
                 signal=report.get("FINAL_SIGNAL"), conf=report.get("CONFIDENCE"),
-                signal_id=report.get("SIGNAL_ID"), news=run_news)
+                signal_id=report.get("SIGNAL_ID"))
 
         except Exception as e:
             send_message(chat_id, f"⚠️ Analysis failed, please try again")
@@ -635,12 +629,8 @@ def _handle_mtf(chat_id, args):
 
     def _run_mtf_work():
         try:
-            pre_report = run_full_analysis(symbol, stack_name=stack, no_news=True, use_nlp=False)
-            pre_conf   = (pre_report or {}).get("CONFIDENCE", 0)
-            l2_str     = ((pre_report or {}).get("REASONING") or {}).get("l2_confluence", "")
-            run_news   = _should_run_news(pre_conf, l2_str)
-
-            report = run_full_analysis(symbol, stack_name=stack, no_news=not run_news, use_nlp=False)
+            # Single-pass analysis with in-flight smart news evaluation
+            report = run_full_analysis(symbol, stack_name=stack, smart_news=True, use_nlp=False)
             if not report or "error" in report:
                 send_message(chat_id, "⚠️ Analysis failed, please try again")
                 return
@@ -658,8 +648,7 @@ def _handle_mtf(chat_id, args):
             send_message(chat_id, panel, reply_markup=None if is_locked else _took_trade_keyboard(symbol, report.get("SIGNAL_ID", "")))
             log("INFO", "mtf_complete", chat_id=chat_id, symbol=symbol,
                 tf=tf, stack=stack, signal=report.get("FINAL_SIGNAL"),
-                conf=report.get("CONFIDENCE"), signal_id=report.get("SIGNAL_ID"),
-                news=run_news)
+                conf=report.get("CONFIDENCE"), signal_id=report.get("SIGNAL_ID"))
 
         except Exception as e:
             send_message(chat_id, "⚠️ Analysis failed, please try again")

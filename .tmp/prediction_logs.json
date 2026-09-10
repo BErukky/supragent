@@ -502,5 +502,248 @@
     "entry_price": 78014.0,
     "snapshot_close": 78014.01,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:02:31.748462",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 77777.78,
+    "snapshot_close": 77777.78,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:02:42.188246",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 77777.78,
+    "snapshot_close": 77777.01,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:02:51.774079",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 77808.01,
+    "snapshot_close": 77812.0,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:03:04.592577",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 77824.3,
+    "snapshot_close": 77824.29,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:03:18.044832",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 77838.0,
+    "snapshot_close": 77840.01,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:03:28.185044",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 77844.01,
+    "snapshot_close": 77844.01,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:05:40.112617",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 67.37,
+    "entry_price": 77749.23,
+    "snapshot_close": 77748.01,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:06:30.897801",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 67.37,
+    "entry_price": 77746.0,
+    "snapshot_close": 77752.01,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:06:41.456030",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 67.37,
+    "entry_price": 77750.76,
+    "snapshot_close": 77750.75,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:07:42.521639",
+    "symbol": "EUR/USD",
+    "action": "LONG_BIAS",
+    "confidence": 81.21,
+    "entry_price": 1.1626,
+    "snapshot_close": 1.1626,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:07:51.091364",
+    "symbol": "EUR/USD",
+    "action": "LONG_BIAS",
+    "confidence": 81.21,
+    "entry_price": 1.16257,
+    "snapshot_close": 1.16261,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:07:56.334873",
+    "symbol": "EUR/USD",
+    "action": "LONG_BIAS",
+    "confidence": 81.21,
+    "entry_price": 1.16256,
+    "snapshot_close": 1.16259,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:08:02.559071",
+    "symbol": "EUR/USD",
+    "action": "LONG_BIAS",
+    "confidence": 76.21,
+    "entry_price": 1.16293,
+    "snapshot_close": 1.16255,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:08:08.638518",
+    "symbol": "EUR/USD",
+    "action": "LONG_BIAS",
+    "confidence": 81.21,
+    "entry_price": 1.16257,
+    "snapshot_close": 1.16263,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:08:13.841787",
+    "symbol": "EUR/USD",
+    "action": "LONG_BIAS",
+    "confidence": 81.21,
+    "entry_price": 1.16257,
+    "snapshot_close": 1.16257,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:08:36.395456",
+    "symbol": "EUR/USD",
+    "action": "LONG_BIAS",
+    "confidence": 73.9,
+    "entry_price": 1.1626,
+    "snapshot_close": 1.1626,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:08:45.987855",
+    "symbol": "EUR/USD",
+    "action": "LONG_BIAS",
+    "confidence": 73.9,
+    "entry_price": 1.1626,
+    "snapshot_close": 1.1629259586334229,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:08:53.227267",
+    "symbol": "EUR/USD",
+    "action": "LONG_BIAS",
+    "confidence": 73.9,
+    "entry_price": 1.16293,
+    "snapshot_close": 1.1629259586334229,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:09:37.675147",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 69.04,
+    "entry_price": 1.35347,
+    "snapshot_close": 1.35347,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:09:45.190541",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 67.12,
+    "entry_price": 1.35345,
+    "snapshot_close": 1.35347,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:09:51.355407",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 69.04,
+    "entry_price": 1.35347,
+    "snapshot_close": 1.35347,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:09:59.013900",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 67.12,
+    "entry_price": 1.35347,
+    "snapshot_close": 1.3534730672836304,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:10:06.664110",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 69.04,
+    "entry_price": 1.35345,
+    "snapshot_close": 1.35345,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:10:13.090428",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 67.12,
+    "entry_price": 1.35344,
+    "snapshot_close": 1.35344,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:10:18.985377",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 69.04,
+    "entry_price": 1.35345,
+    "snapshot_close": 1.35345,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:10:24.521519",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 69.04,
+    "entry_price": 1.35345,
+    "snapshot_close": 1.35345,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-10 12:10:32.251982",
+    "symbol": "GBP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 69.04,
+    "entry_price": 1.35347,
+    "snapshot_close": 1.3534730672836304,
+    "outcome_checked": false
   }
 ]
