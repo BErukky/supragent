@@ -810,15 +810,19 @@ def _handle_close(chat_id, args):
         send_message(chat_id, "⚠️ Usage: `/close SYMBOL PRICE`\ne.g. `/close BTC/USD 71000`")
         return
     symbol     = args[0].upper()
-    exit_price = float(args[1])
-
-    open_trades = get_open_trades()
-    match = next((t for t in open_trades if t["symbol"] == symbol), None)
-    if not match:
-        send_message(chat_id, f"⚠️ No open trade found for `{symbol}`.")
+    try:
+        exit_price = float(args[1])
+    except ValueError:
+        send_message(chat_id, "⚠️ Invalid exit price.")
         return
 
-    result = close_trade(match["id"], exit_price)
+    open_trades = get_open_trades(chat_id=str(chat_id))
+    match = next((t for t in open_trades if t["symbol"] == symbol), None)
+    if not match:
+        send_message(chat_id, f"⚠️ No open trade found for `{symbol}` under your account.")
+        return
+
+    result = close_trade(match["id"], exit_price, chat_id=str(chat_id))
     if not result:
         send_message(chat_id, "❌ Failed to close trade.")
         return
@@ -932,16 +936,16 @@ def process_command(chat_id, command, args):
         threading.Thread(target=_handle_took_trade, args=(chat_id, target_sym), daemon=True).start()
 
     elif cmd == "/trades":
-        send_message(chat_id, format_open_trades())
+        send_message(chat_id, format_open_trades(chat_id=str(chat_id)))
 
     elif cmd == "/close":
         _handle_close(chat_id, args)
 
     elif cmd == "/history":
-        send_message(chat_id, format_history())
+        send_message(chat_id, format_history(chat_id=str(chat_id)))
 
     elif cmd == "/stats":
-        send_message(chat_id, format_stats())
+        send_message(chat_id, format_stats(chat_id=str(chat_id)))
 
     else:
         send_message(chat_id, "❓ Unknown command. Send `/start` to see all commands.")

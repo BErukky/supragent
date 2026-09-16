@@ -9,7 +9,7 @@ import json
 import time
 import threading
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
@@ -85,7 +85,7 @@ def register_trade(symbol: str, direction: str, entry: float, sl: float,
         "risk_usd":    risk_usd,
         "tps_hit":     [],              # tracks which TPs already triggered
         "status":      "OPEN",
-        "opened_at":   datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+        "opened_at":   datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "chat_id":     chat_id,
     }
     with _trades_lock:
@@ -95,12 +95,15 @@ def register_trade(symbol: str, direction: str, entry: float, sl: float,
     return trade
 
 
-def get_open_trades() -> list:
+def get_open_trades(chat_id: str = None) -> list:
     with _trades_lock:
-        return [t for t in _load_trades() if t["status"] == "OPEN"]
+        trades = [t for t in _load_trades() if t["status"] == "OPEN"]
+        if chat_id is not None:
+            trades = [t for t in trades if str(t.get("chat_id")) == str(chat_id)]
+        return trades
 
 
-def close_trade(trade_id: str, exit_price: float) -> dict:
+def close_trade(trade_id: str, exit_price: float, chat_id: str = None) -> dict:
     """Manually closes a trade at the given price. Returns the closed trade record."""
     from bot_settings import record_trade_close
 
@@ -111,6 +114,8 @@ def close_trade(trade_id: str, exit_price: float) -> dict:
 
         for t in trades:
             if t["id"] == trade_id and t["status"] == "OPEN":
+                if chat_id is not None and str(t.get("chat_id")) != str(chat_id):
+                    continue
                 is_long  = t["direction"] == "LONG"
                 pnl_usd  = round((exit_price - t["entry"]) * t["size_units"] * (1 if is_long else -1), 4)
                 rr       = round(pnl_usd / t["risk_usd"], 2) if t["risk_usd"] > 0 else 0
@@ -119,7 +124,7 @@ def close_trade(trade_id: str, exit_price: float) -> dict:
                 t["exit_price"] = exit_price
                 t["pnl_usd"]   = pnl_usd
                 t["rr_actual"] = rr
-                t["closed_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+                t["closed_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
                 history.append(t)
                 record_trade_close(pnl_usd)
@@ -131,10 +136,12 @@ def close_trade(trade_id: str, exit_price: float) -> dict:
         return result
 
 
-def get_stats() -> dict:
+def get_stats(chat_id: str = None) -> dict:
     """Returns win rate, avg R, net P&L from closed trade history."""
     with _trades_lock:
         history = _load_history()
+        if chat_id is not None:
+            history = [t for t in history if str(t.get("chat_id")) == str(chat_id)]
         if not history:
             return {"total": 0, "wins": 0, "losses": 0, "win_rate": 0, "avg_rr": 0, "net_pnl": 0}
 
@@ -161,7 +168,7 @@ def _get_live_price(symbol: str) -> float | None:
     1. Twelve Data /price — single-field, no time-series, works for forex + crypto + metals
     2. CCXT ticker (Binance > Bybit > Kraken) — crypto, plus PAXG/USDT for XAU/USD spot gold
     3. yfinance fast ticker (PAXG-USD for Gold, SI=F for Silver, forex =X, crypto -USD)
-    4. CSV last-close — last resort only, with a 60s staleness guard
+    4. CSV last-close — last resort fallback with 600s staleness guard
     """
     import requests as _req
 
@@ -175,7 +182,7 @@ def _get_live_price(symbol: str) -> float | None:
             r = _req.get(url, timeout=5)
             if r.status_code == 200:
                 data = r.json()
-                if 'price' in data:
+                if 'price' in data and data['price'] is not None:
                     return float(data['price'])
     except Exception:
         pass
@@ -229,15 +236,15 @@ def _get_live_price(symbol: str) -> float | None:
     except Exception:
         pass
 
-    # 4. CSV last-close — only if file is less than 60 seconds old
+    # 4. CSV last-close — fallback if live calls fail
     try:
         import pandas as pd
         safe = symbol.replace('/', '_')
-        for tf in ('1h', '15m', '5m', '1d'):
+        for tf in ('5m', '15m', '1h', '1d'):
             path = os.path.join('.tmp', f'{safe}_{tf}.csv')
-            if os.path.exists(path) and (time.time() - os.path.getmtime(path)) < 60:
+            if os.path.exists(path) and (time.time() - os.path.getmtime(path)) < 600:
                 df = pd.read_csv(path)
-                if not df.empty:
+                if not df.empty and 'close' in df.columns:
                     return float(df['close'].iloc[-1])
     except Exception:
         pass
@@ -254,34 +261,46 @@ def _check_trades(send_fn):
         history = _load_history()
         updated = False
 
-        for t in trades:
-            if t.get("status") != "OPEN":
-                continue
+        open_trades = [t for t in trades if t.get("status") == "OPEN"]
+        if not open_trades:
+            return
 
+        # Pre-fetch live prices once per unique symbol to prevent rate limits and redundant network calls
+        unique_symbols = list({t.get("symbol", "") for t in open_trades if t.get("symbol")})
+        price_cache: dict[str, float | None] = {}
+        candle_data_cache: dict[str, tuple[float | None, float | None]] = {}
+
+        for sym in unique_symbols:
+            price = _get_live_price(sym)
+            price_cache[sym] = price
+
+            # Inspect recent 5m candle high/low if available to catch intra-candle wicks
+            c_high = price
+            c_low  = price
+            try:
+                safe = sym.replace('/', '_')
+                csv_path = os.path.join('.tmp', f'{safe}_5m.csv')
+                if os.path.exists(csv_path) and (time.time() - os.path.getmtime(csv_path)) < 600:
+                    import pandas as pd
+                    cdf = pd.read_csv(csv_path)
+                    if not cdf.empty and 'high' in cdf.columns and 'low' in cdf.columns:
+                        recent_h = float(cdf['high'].iloc[-1])
+                        recent_l = float(cdf['low'].iloc[-1])
+                        if price is not None:
+                            c_high = max(price, recent_h)
+                            c_low  = min(price, recent_l)
+                        else:
+                            c_high = recent_h
+                            c_low  = recent_l
+            except Exception:
+                pass
+            candle_data_cache[sym] = (c_high, c_low)
+
+        for t in open_trades:
             try:
                 symbol = t.get("symbol", "")
-                price  = _get_live_price(symbol)
-
-                # Inspect recent 5m candle high/low if available to catch intra-candle wicks
-                candle_high = price
-                candle_low  = price
-                try:
-                    safe = symbol.replace('/', '_')
-                    csv_path = os.path.join('.tmp', f'{safe}_5m.csv')
-                    if os.path.exists(csv_path) and (time.time() - os.path.getmtime(csv_path)) < 600:
-                        import pandas as pd
-                        cdf = pd.read_csv(csv_path)
-                        if not cdf.empty and 'high' in cdf.columns and 'low' in cdf.columns:
-                            c_h = float(cdf['high'].iloc[-1])
-                            c_l = float(cdf['low'].iloc[-1])
-                            if price is not None:
-                                candle_high = max(price, c_h)
-                                candle_low  = min(price, c_l)
-                            else:
-                                candle_high = c_h
-                                candle_low  = c_l
-                except Exception:
-                    pass
+                price  = price_cache.get(symbol)
+                candle_high, candle_low = candle_data_cache.get(symbol, (price, price))
 
                 if price is None and candle_high is None:
                     print(f"[TRADE_MONITOR_WARN] Live price and candle data unavailable for {symbol} (trade {t.get('id')}) — skipping check this cycle", file=sys.stderr)
@@ -302,7 +321,7 @@ def _check_trades(send_fn):
                     t["exit_price"] = t["sl"]
                     t["pnl_usd"]    = pnl
                     t["rr_actual"]  = -1.0
-                    t["closed_at"]  = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+                    t["closed_at"]  = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
                     history.append(t)
                     s = record_trade_close(pnl)
                     updated = True
@@ -337,7 +356,7 @@ def _check_trades(send_fn):
                             t["exit_price"] = tp
                             t["pnl_usd"]    = profit
                             t["rr_actual"]  = rr
-                            t["closed_at"]  = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+                            t["closed_at"]  = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
                             history.append(t)
                             record_trade_close(profit)
                         else:
@@ -397,9 +416,8 @@ def start_monitor(send_fn, interval: int = 300):
 
 # ─── Formatters ───────────────────────────────────────────────────────────────
 
-def format_open_trades() -> str:
-    from execution.market_data import fetch_data
-    trades = get_open_trades()
+def format_open_trades(chat_id: str = None) -> str:
+    trades = get_open_trades(chat_id=chat_id)
     if not trades:
         return "📭 *No open trades.*"
 
@@ -425,8 +443,8 @@ def format_open_trades() -> str:
     return "\n".join(lines)
 
 
-def format_stats() -> str:
-    s = get_stats()
+def format_stats(chat_id: str = None) -> str:
+    s = get_stats(chat_id=chat_id)
     if s["total"] == 0:
         return "📭 *No completed trades yet.*"
     pnl_emoji = "🟢" if s["net_pnl"] >= 0 else "🔴"
@@ -441,8 +459,10 @@ def format_stats() -> str:
     )
 
 
-def format_history() -> str:
+def format_history(chat_id: str = None) -> str:
     history = _load_history()
+    if chat_id is not None:
+        history = [t for t in history if str(t.get("chat_id")) == str(chat_id)]
     if not history:
         return "📭 *No trade history yet.*"
     lines = ["📋 *TRADE HISTORY*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━"]
