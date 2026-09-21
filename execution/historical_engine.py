@@ -211,7 +211,15 @@ def calculate_seasonality_stats(symbol: str = None,
     try:
         import sys, os
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-        from db_manager import DB_PATH
+        try:
+            from db_manager import _get_connection
+            conn = _get_connection()
+        except Exception:
+            from db_manager import DB_PATH
+            conn = sqlite3.connect(DB_PATH, timeout=10.0)
+            conn.execute("PRAGMA journal_mode=WAL;")
+            conn.execute("PRAGMA busy_timeout=5000;")
+            conn.execute("PRAGMA synchronous=NORMAL;")
     except Exception:
         return NULL
 
@@ -221,7 +229,6 @@ def calculate_seasonality_stats(symbol: str = None,
     current_month   = now.month
 
     try:
-        conn = sqlite3.connect(DB_PATH)
         cur  = conn.cursor()
         # Check new unified schema first
         cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ohlcv'")
@@ -239,14 +246,14 @@ def calculate_seasonality_stats(symbol: str = None,
             tables = [r[0] for r in cur.fetchall()]
             tbl = tables[0] if tables else None
             if not tbl:
-                conn.close()
                 return NULL
             rows = cur.execute(
                 f"SELECT timestamp, open, close FROM {tbl} ORDER BY timestamp"
             ).fetchall()
-        conn.close()
     except Exception as e:
         return {**NULL, "reasoning": f"DB error: {e}"}
+    finally:
+        conn.close()
 
     if len(rows) < 200:
         return {**NULL, "reasoning": f"Insufficient history ({len(rows)} rows) for seasonality"}

@@ -1,749 +1,218 @@
 [
   {
-    "timestamp": "2026-08-03 00:40:59.478810",
-    "symbol": "ADA/USD",
+    "timestamp": "2026-09-21 11:32:03.352331",
+    "symbol": "ETH/USD",
     "action": "WAIT / NO_TRADE",
-    "confidence": 44.05,
-    "entry_price": 0.1909,
-    "snapshot_close": 0.1909,
+    "confidence": 52.27,
+    "entry_price": 2715.5,
+    "snapshot_close": 2714.4,
     "outcome_checked": false
   },
   {
-    "timestamp": "2026-08-03 00:41:08.934296",
-    "symbol": "XRP/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "timestamp": "2026-09-21 11:32:03.861657",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
     "confidence": 0.0,
-    "entry_price": 1.09178,
-    "snapshot_close": 1.09178,
+    "entry_price": 2715.5,
+    "snapshot_close": 2714.4,
     "outcome_checked": false
   },
   {
-    "timestamp": "2026-08-03 00:41:11.647720",
+    "timestamp": "2026-09-21 11:32:05.454866",
     "symbol": "BTC/USD",
     "action": "WAIT / NO_TRADE",
-    "confidence": 49.49,
-    "entry_price": 63752.94,
-    "snapshot_close": 63752.94,
+    "confidence": 57.64,
+    "entry_price": 84274.76,
+    "snapshot_close": 84350.67,
     "outcome_checked": false
   },
   {
-    "timestamp": "2026-08-03 00:41:27.759373",
+    "timestamp": "2026-09-21 11:32:45.817487",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 40.26,
+    "entry_price": 1.4934,
+    "snapshot_close": 1.4934,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:32:55.457389",
     "symbol": "DOGE/USD",
     "action": "WAIT / NO_TRADE",
-    "confidence": 44.29,
-    "entry_price": 0.0713684,
-    "snapshot_close": 0.0713684,
+    "confidence": 42.77,
+    "entry_price": 0.09263,
+    "snapshot_close": 0.09263,
     "outcome_checked": false
   },
   {
-    "timestamp": "2026-08-03 00:41:29.112515",
-    "symbol": "DOT/USD",
-    "action": "SHORT_BIAS",
-    "confidence": 87.97,
-    "entry_price": 0.7942,
-    "snapshot_close": 0.7942,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 00:41:34.019598",
-    "symbol": "BTC/USD",
+    "timestamp": "2026-09-21 11:32:57.254784",
+    "symbol": "ADA/USD",
     "action": "WAIT / NO_TRADE",
-    "confidence": 59.3,
-    "entry_price": 62959.62,
-    "snapshot_close": 62959.62,
+    "confidence": 79.07,
+    "entry_price": 0.2395,
+    "snapshot_close": 0.2395,
     "outcome_checked": false
   },
   {
-    "timestamp": "2026-08-03 00:41:37.145817",
+    "timestamp": "2026-09-21 11:33:11.103310",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 79.07,
+    "entry_price": 0.2395,
+    "snapshot_close": 0.2395,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:33:39.875980",
     "symbol": "DOT/USD",
-    "action": "WAIT / LOCKED (CRITICAL NEWS)",
-    "confidence": 67.11,
-    "entry_price": 0.7942,
-    "snapshot_close": 0.7942,
+    "action": "WAIT / NO_TRADE",
+    "confidence": 61.49,
+    "entry_price": 1.183,
+    "snapshot_close": 1.183,
     "outcome_checked": false
   },
   {
-    "timestamp": "2026-08-03 00:41:47.471253",
+    "timestamp": "2026-09-21 11:34:05.675391",
     "symbol": "LTC/USD",
     "action": "WAIT / NO_TRADE (Confluence Floor)",
     "confidence": 0.0,
-    "entry_price": 44.98,
-    "snapshot_close": 44.98,
+    "entry_price": 60.11,
+    "snapshot_close": 60.09,
     "outcome_checked": false
   },
   {
-    "timestamp": "2026-08-03 00:41:50.311721",
+    "timestamp": "2026-09-21 11:34:11.701059",
+    "symbol": "LINK/USD",
+    "action": "WAIT / NO_TRADE (Structural Floor)",
+    "confidence": 0.0,
+    "entry_price": 12.99,
+    "snapshot_close": 12.991,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:39:05.000337",
+    "symbol": "SOL/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 64.01,
+    "entry_price": 115.54,
+    "snapshot_close": 115.54,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:39:08.461271",
+    "symbol": "SOL/USD",
+    "action": "LONG_BIAS",
+    "confidence": 88.47,
+    "entry_price": 115.54,
+    "snapshot_close": 115.54,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:39:09.713177",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 68.71,
+    "entry_price": 84188.01,
+    "snapshot_close": 84188.0,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:39:17.401227",
+    "symbol": "BTC/USD",
+    "action": "LONG_BIAS",
+    "confidence": 90.2,
+    "entry_price": 84188.0,
+    "snapshot_close": 84218.9,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:39:22.011671",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 50.84,
+    "entry_price": 2711.39,
+    "snapshot_close": 2709.05,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:39:27.751199",
+    "symbol": "ETH/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 2709.05,
+    "snapshot_close": 2709.05,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:39:53.057142",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 63.2,
+    "entry_price": 84218.9,
+    "snapshot_close": 84218.9,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:40:06.955406",
+    "symbol": "XRP/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 42.95,
+    "entry_price": 1.4897,
+    "snapshot_close": 1.4893,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:40:21.898118",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 75.06,
+    "entry_price": 0.2401,
+    "snapshot_close": 0.2401,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:40:31.917769",
+    "symbol": "ADA/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 75.06,
+    "entry_price": 0.24,
+    "snapshot_close": 0.24,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:40:39.503677",
+    "symbol": "DOGE/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 43.84,
+    "entry_price": 0.09253,
+    "snapshot_close": 0.09253,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:41:10.422090",
+    "symbol": "DOT/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 52.61,
+    "entry_price": 1.1846,
+    "snapshot_close": 1.186,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:41:25.719720",
+    "symbol": "LTC/USD",
+    "action": "WAIT / NO_TRADE (Confluence Floor)",
+    "confidence": 0.0,
+    "entry_price": 60.19,
+    "snapshot_close": 60.23,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 11:41:40.266894",
     "symbol": "LINK/USD",
     "action": "WAIT / NO_TRADE",
-    "confidence": 48.29,
-    "entry_price": 8.44588,
-    "snapshot_close": 8.44588,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 00:41:50.470138",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 59.3,
-    "entry_price": 62959.62,
-    "snapshot_close": 62959.62,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 01:54:01.340750",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 63535.18,
-    "snapshot_close": 63535.18,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 02:02:29.864353",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Confluence Floor)",
-    "confidence": 0.0,
-    "entry_price": 63111.75,
-    "snapshot_close": 63111.75,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 02:02:47.556258",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 1880.18,
-    "snapshot_close": 1880.18,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 02:03:11.168661",
-    "symbol": "SOL/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 74.23,
-    "snapshot_close": 74.23,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 02:03:59.535033",
-    "symbol": "XRP/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 1.08649,
-    "snapshot_close": 1.08649,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 02:04:37.013850",
-    "symbol": "ADA/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 0.189518,
-    "snapshot_close": 0.189518,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 02:05:19.528450",
-    "symbol": "DOGE/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 0.0708279,
-    "snapshot_close": 0.0708279,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 02:05:59.211044",
-    "symbol": "DOT/USD",
-    "action": "WAIT / NO_TRADE (Confluence Floor)",
-    "confidence": 0.0,
-    "entry_price": 0.7978,
-    "snapshot_close": 0.7978,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 02:44:10.844993",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 78.62,
-    "entry_price": 1880.18,
-    "snapshot_close": 1880.18,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 02:45:32.307138",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 63.82,
-    "entry_price": 1880.18,
-    "snapshot_close": 1880.18,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 02:51:05.275442",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Confluence Floor)",
-    "confidence": 0.0,
-    "entry_price": 63111.75,
-    "snapshot_close": 63111.75,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 10:41:18.649104",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 47.71,
-    "entry_price": 1.34778,
-    "snapshot_close": 1.34778,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 10:42:05.882931",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 47.71,
-    "entry_price": 1.34778,
-    "snapshot_close": 1.34778,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 12:12:17.140294",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 46.88,
-    "entry_price": 1.34778,
-    "snapshot_close": 1.34778,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 13:00:02.756235",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 44.4,
-    "entry_price": 1.34778,
-    "snapshot_close": 1.34778,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 13:00:57.722861",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 44.48,
-    "entry_price": 1.34778,
-    "snapshot_close": 1.34778,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 13:20:29.075406",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 50.37,
-    "entry_price": 1.34778,
-    "snapshot_close": 1.34778,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-03 13:22:07.939374",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 50.38,
-    "entry_price": 1.34778,
-    "snapshot_close": 1.34778,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-11 10:31:49.445947",
-    "symbol": "JPY/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 51.92,
-    "entry_price": 0.0062779,
-    "snapshot_close": 0.0062779,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-11 10:32:09.568591",
-    "symbol": "AUD/USD",
-    "action": "LONG_BIAS",
-    "confidence": 78.84,
-    "entry_price": 0.70549,
-    "snapshot_close": 0.70549,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-11 10:44:08.712547",
-    "symbol": "AUD/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 69.86,
-    "entry_price": 0.70549,
-    "snapshot_close": 0.70549,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-21 02:18:39.801274",
-    "symbol": "XAU/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 66.13,
-    "entry_price": 4532.50737,
-    "snapshot_close": 4532.50737,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-21 02:20:53.350424",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 51.36,
-    "entry_price": 72358.57,
-    "snapshot_close": 72358.57,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-08-21 02:21:19.072646",
-    "symbol": "GBP/USD",
-    "action": "LONG_BIAS",
-    "confidence": 85.35,
-    "entry_price": 1.36467,
-    "snapshot_close": 1.36467,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-03 15:09:52.640873",
-    "symbol": "ETH/USD",
-    "action": "SHORT_BIAS",
-    "confidence": 78.97,
-    "entry_price": 2393.49,
-    "snapshot_close": 2393.49,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-03 15:11:29.957271",
-    "symbol": "ADA/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 58.26,
-    "entry_price": 0.206595,
-    "snapshot_close": 0.206595,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 08:27:42.370883",
-    "symbol": "XAU/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 51.87,
-    "entry_price": 4398.89148,
-    "snapshot_close": 4398.89148,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 08:51:00.666024",
-    "symbol": "XAU/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 50.88,
-    "entry_price": 4440.4,
-    "snapshot_close": 4440.39990234375,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 08:51:20.934865",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 66.54,
-    "entry_price": 1.35307,
-    "snapshot_close": 1.35307,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 08:52:06.915202",
-    "symbol": "XAU/USD",
-    "action": "WAIT / NO_TRADE (Confluence Floor)",
-    "confidence": 0.0,
-    "entry_price": 4392.32,
-    "snapshot_close": 4392.32222,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 08:52:24.130357",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 66.54,
-    "entry_price": 1.35322,
-    "snapshot_close": 1.35316,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 09:06:35.481298",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 78385.59,
-    "snapshot_close": 78391.11,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 09:07:04.192669",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 78393.43,
-    "snapshot_close": 78393.43,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 09:08:01.056466",
-    "symbol": "ETH/USD",
-    "action": "WAIT / LOCKED (CRITICAL NEWS)",
-    "confidence": 14.33,
-    "entry_price": 2474.49,
-    "snapshot_close": 2474.49,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 09:08:22.930041",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 36.33,
-    "entry_price": 2474.34,
-    "snapshot_close": 2473.84,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 09:12:33.529367",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 78357.66,
-    "snapshot_close": 78230.0,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 09:16:39.354630",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 78348.0,
-    "snapshot_close": 78348.0,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 09:20:01.536832",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 78344.0,
-    "snapshot_close": 78344.0,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 09:22:21.142018",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 2472.67,
-    "snapshot_close": 2472.68,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 09:23:35.278901",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 78350.0,
-    "snapshot_close": 78350.0,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 09:23:52.302985",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 2472.82,
-    "snapshot_close": 2472.99,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 09:24:56.700095",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 78392.0,
-    "snapshot_close": 78399.99,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-08 09:25:26.081448",
-    "symbol": "ETH/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 2472.86,
-    "snapshot_close": 2472.86,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 11:10:34.305341",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 77980.06,
-    "snapshot_close": 77980.06,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 11:10:59.753333",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 77980.07,
-    "snapshot_close": 77980.07,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 11:15:45.094420",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 51.57,
-    "entry_price": 78014.0,
-    "snapshot_close": 78014.01,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:02:31.748462",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 77777.78,
-    "snapshot_close": 77777.78,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:02:42.188246",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 77777.78,
-    "snapshot_close": 77777.01,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:02:51.774079",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 77808.01,
-    "snapshot_close": 77812.0,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:03:04.592577",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 77824.3,
-    "snapshot_close": 77824.29,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:03:18.044832",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 77838.0,
-    "snapshot_close": 77840.01,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:03:28.185044",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE (Structural Floor)",
-    "confidence": 0.0,
-    "entry_price": 77844.01,
-    "snapshot_close": 77844.01,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:05:40.112617",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 67.37,
-    "entry_price": 77749.23,
-    "snapshot_close": 77748.01,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:06:30.897801",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 67.37,
-    "entry_price": 77746.0,
-    "snapshot_close": 77752.01,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:06:41.456030",
-    "symbol": "BTC/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 67.37,
-    "entry_price": 77750.76,
-    "snapshot_close": 77750.75,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:07:42.521639",
-    "symbol": "EUR/USD",
-    "action": "LONG_BIAS",
-    "confidence": 81.21,
-    "entry_price": 1.1626,
-    "snapshot_close": 1.1626,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:07:51.091364",
-    "symbol": "EUR/USD",
-    "action": "LONG_BIAS",
-    "confidence": 81.21,
-    "entry_price": 1.16257,
-    "snapshot_close": 1.16261,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:07:56.334873",
-    "symbol": "EUR/USD",
-    "action": "LONG_BIAS",
-    "confidence": 81.21,
-    "entry_price": 1.16256,
-    "snapshot_close": 1.16259,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:08:02.559071",
-    "symbol": "EUR/USD",
-    "action": "LONG_BIAS",
-    "confidence": 76.21,
-    "entry_price": 1.16293,
-    "snapshot_close": 1.16255,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:08:08.638518",
-    "symbol": "EUR/USD",
-    "action": "LONG_BIAS",
-    "confidence": 81.21,
-    "entry_price": 1.16257,
-    "snapshot_close": 1.16263,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:08:13.841787",
-    "symbol": "EUR/USD",
-    "action": "LONG_BIAS",
-    "confidence": 81.21,
-    "entry_price": 1.16257,
-    "snapshot_close": 1.16257,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:08:36.395456",
-    "symbol": "EUR/USD",
-    "action": "LONG_BIAS",
-    "confidence": 73.9,
-    "entry_price": 1.1626,
-    "snapshot_close": 1.1626,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:08:45.987855",
-    "symbol": "EUR/USD",
-    "action": "LONG_BIAS",
-    "confidence": 73.9,
-    "entry_price": 1.1626,
-    "snapshot_close": 1.1629259586334229,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:08:53.227267",
-    "symbol": "EUR/USD",
-    "action": "LONG_BIAS",
-    "confidence": 73.9,
-    "entry_price": 1.16293,
-    "snapshot_close": 1.1629259586334229,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:09:37.675147",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 69.04,
-    "entry_price": 1.35347,
-    "snapshot_close": 1.35347,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:09:45.190541",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 67.12,
-    "entry_price": 1.35345,
-    "snapshot_close": 1.35347,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:09:51.355407",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 69.04,
-    "entry_price": 1.35347,
-    "snapshot_close": 1.35347,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:09:59.013900",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 67.12,
-    "entry_price": 1.35347,
-    "snapshot_close": 1.3534730672836304,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:10:06.664110",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 69.04,
-    "entry_price": 1.35345,
-    "snapshot_close": 1.35345,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:10:13.090428",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 67.12,
-    "entry_price": 1.35344,
-    "snapshot_close": 1.35344,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:10:18.985377",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 69.04,
-    "entry_price": 1.35345,
-    "snapshot_close": 1.35345,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:10:24.521519",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 69.04,
-    "entry_price": 1.35345,
-    "snapshot_close": 1.35345,
-    "outcome_checked": false
-  },
-  {
-    "timestamp": "2026-09-10 12:10:32.251982",
-    "symbol": "GBP/USD",
-    "action": "WAIT / NO_TRADE",
-    "confidence": 69.04,
-    "entry_price": 1.35347,
-    "snapshot_close": 1.3534730672836304,
+    "confidence": 52.45,
+    "entry_price": 13.006,
+    "snapshot_close": 13.006,
     "outcome_checked": false
   }
 ]

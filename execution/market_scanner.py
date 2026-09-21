@@ -61,42 +61,46 @@ def run_technical_filter(symbol, stack_name="intraday"):
 
 def _scan_symbol(symbol, no_news, delay_seconds, index, stack_name="intraday"):
     """Per-asset scan worker for the parallel scanner."""
-    if delay_seconds > 0:
-        time.sleep(delay_seconds)
+    try:
+        if delay_seconds > 0:
+            time.sleep(delay_seconds)
 
-    tech_report = run_technical_filter(symbol, stack_name=stack_name)
-    if not tech_report:
+        tech_report = run_technical_filter(symbol, stack_name=stack_name)
+        if not tech_report:
+            return {"index": index, "symbol": symbol, "hit": False, "skipped": False}
+
+        sig = tech_report.get("FINAL_SIGNAL", "WAIT")
+        conf = tech_report.get("CONFIDENCE", 0)
+
+        if "WAIT" in sig and conf < 65:
+            print(f"[-] {symbol}: Skipping (Technically Weak - {conf}%)")
+            return {"index": index, "symbol": symbol, "hit": False, "skipped": True}
+
+        print(f"[+] {symbol}: satisfying Technicals ({conf}%). Running CARI/History...")
+        report = run_full_analysis(symbol, stack_name=stack_name, no_news=no_news)
+
+        if not report:
+            return {"index": index, "symbol": symbol, "hit": False, "skipped": False}
+
+        conf = report.get("CONFIDENCE", 0)
+        signal = report.get("FINAL_SIGNAL", "WAIT")
+        is_blocked = "WAIT / NO_TRADE" in signal or "CRITICAL" in signal
+
+        if conf >= 70 and not is_blocked:
+            return {
+                "index": index,
+                "symbol": symbol,
+                "hit": True,
+                "signal": signal,
+                "confidence": conf,
+                "report": report,
+                "skipped": False,
+            }
+
         return {"index": index, "symbol": symbol, "hit": False, "skipped": False}
-
-    sig = tech_report.get("FINAL_SIGNAL", "WAIT")
-    conf = tech_report.get("CONFIDENCE", 0)
-
-    if "WAIT" in sig and conf < 65:
-        print(f"[-] {symbol}: Skipping (Technically Weak - {conf}%)")
+    except Exception as e:
+        print(f"[-] Scan worker exception for {symbol}: {e}")
         return {"index": index, "symbol": symbol, "hit": False, "skipped": True}
-
-    print(f"[+] {symbol}: satisfying Technicals ({conf}%). Running CARI/History...")
-    report = run_full_analysis(symbol, stack_name=stack_name, no_news=no_news)
-
-    if not report:
-        return {"index": index, "symbol": symbol, "hit": False, "skipped": False}
-
-    conf = report.get("CONFIDENCE", 0)
-    signal = report.get("FINAL_SIGNAL", "WAIT")
-    is_blocked = "WAIT / NO_TRADE" in signal or "CRITICAL" in signal
-
-    if conf >= 70 and not is_blocked:
-        return {
-            "index": index,
-            "symbol": symbol,
-            "hit": True,
-            "signal": signal,
-            "confidence": conf,
-            "report": report,
-            "skipped": False,
-        }
-
-    return {"index": index, "symbol": symbol, "hit": False, "skipped": False}
 
 
 def main(stack="intraday", no_news=False):
@@ -120,7 +124,8 @@ def main(stack="intraday", no_news=False):
     total = len(ASSETS)
     scan_history = _load_scan_history()
     delay_seconds = float(os.getenv("SCAN_DELAY_SECONDS", "0"))
-    max_workers = min(5, max(1, len(ASSETS)))
+    max_workers = int(os.getenv("SCAN_MAX_WORKERS", "3"))
+    max_workers = min(max_workers, max(1, len(ASSETS)))
 
     futures = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
