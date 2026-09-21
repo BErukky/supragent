@@ -985,6 +985,13 @@ def handle_callback(query):
 # ─── Main Loop ────────────────────────────────────────────────────────────────
 
 def main_loop():
+    # Automatically clear any active webhook to ensure getUpdates long-polling works
+    try:
+        del_res = requests.post(f"{BASE_URL}/deleteWebhook?drop_pending_updates=False", timeout=10).json()
+        log("INFO", "webhook_cleared", result=del_res.get("description", "ok"))
+    except Exception as e:
+        log("WARN", "webhook_clear_failed", error=str(e))
+
     # Register native Telegram autocomplete command menu
     register_bot_commands()
 
@@ -1004,6 +1011,7 @@ def main_loop():
             if data.get("ok"):
                 for update in data.get("result", []):
                     offset = update["update_id"] + 1
+                    log("DEBUG", "update_received", update_id=update["update_id"])
 
                     # Text commands
                     if "message" in update and "text" in update["message"]:
@@ -1026,8 +1034,16 @@ def main_loop():
                             args=(update["callback_query"],),
                             daemon=True
                         ).start()
+            else:
+                err_code = data.get("error_code")
+                desc = data.get("description", "Unknown Telegram API error")
+                log("WARN", "telegram_poll_error", error_code=err_code, description=desc)
+                # If webhook conflict returned, re-attempt deleteWebhook
+                if err_code == 409 and "webhook" in desc.lower():
+                    requests.post(f"{BASE_URL}/deleteWebhook", timeout=10)
+                time.sleep(3)
 
-            time.sleep(1)
+            time.sleep(0.5)
 
         except Exception as e:
             log("ERROR", "poll_error", error=str(e))
