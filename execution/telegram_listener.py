@@ -1049,8 +1049,12 @@ def main_loop():
 
     while True:
         try:
-            url  = f"{BASE_URL}/getUpdates?timeout=30&offset={offset}"
-            resp = requests.get(url, timeout=45)
+            payload = {
+                "offset": offset,
+                "timeout": 30,
+                "allowed_updates": ["message", "edited_message", "callback_query"]
+            }
+            resp = requests.post(f"{BASE_URL}/getUpdates", json=payload, timeout=45)
             data = resp.json()
 
             if data.get("ok"):
