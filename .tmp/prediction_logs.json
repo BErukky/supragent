@@ -223,5 +223,23 @@
     "entry_price": 66.955,
     "snapshot_close": 66.95500183105469,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 13:17:24.904624",
+    "symbol": "XAU/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 39.94,
+    "entry_price": 4369.1,
+    "snapshot_close": 4369.10171,
+    "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 13:18:30.459672",
+    "symbol": "BTC/USD",
+    "action": "WAIT / NO_TRADE",
+    "confidence": 48.1,
+    "entry_price": 85198.62,
+    "snapshot_close": 85198.63,
+    "outcome_checked": false
   }
 ]
