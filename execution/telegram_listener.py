@@ -168,12 +168,14 @@ def _safe(s: str) -> str:
 
 
 
-def answer_callback(callback_id, text="✅"):
+def answer_callback(callback_id, text=None):
     try:
-        requests.post(f"{BASE_URL}/answerCallbackQuery",
-                      json={"callback_query_id": callback_id, "text": text}, timeout=5)
-    except Exception:
-        pass
+        payload = {"callback_query_id": callback_id}
+        if text:
+            payload["text"] = text
+        requests.post(f"{BASE_URL}/answerCallbackQuery", json=payload, timeout=5)
+    except Exception as e:
+        log("WARN", "answer_callback_failed", error=str(e))
 
 
 RECENT_SYMBOLS_FILE = os.path.join(os.path.dirname(__file__), '..', '.tmp', 'recent_symbols.json')
@@ -192,9 +194,9 @@ def _load_recent_symbols(chat_id) -> list:
                     if user_list:
                         combined = []
                         for s in user_list + DEFAULT_SYMBOLS:
-                            s_up = s.upper()
-                            if s_up not in combined:
-                                combined.append(s_up)
+                            s_norm = normalize_user_symbol(s)
+                            if s_norm and s_norm not in combined:
+                                combined.append(s_norm)
                         return combined[:5]
         except Exception:
             pass
@@ -206,7 +208,7 @@ def _record_recent_symbol(chat_id, symbol: str):
     if not symbol or not chat_id:
         return
     cid_str = str(chat_id)
-    sym_upper = symbol.upper().strip()
+    sym_normalized = normalize_user_symbol(symbol.upper().strip())
     with _RECENT_SYMBOLS_LOCK:
         try:
             os.makedirs(os.path.dirname(RECENT_SYMBOLS_FILE), exist_ok=True)
@@ -214,8 +216,8 @@ def _record_recent_symbol(chat_id, symbol: str):
             if os.path.exists(RECENT_SYMBOLS_FILE):
                 with open(RECENT_SYMBOLS_FILE, "r") as f:
                     data = json.load(f)
-            current = data.get(cid_str, [])
-            new_list = [sym_upper] + [s for s in current if s.upper() != sym_upper]
+            current = [normalize_user_symbol(s) for s in data.get(cid_str, [])]
+            new_list = [sym_normalized] + [s for s in current if s != sym_normalized]
             data[cid_str] = new_list[:5]
             with open(RECENT_SYMBOLS_FILE, "w") as f:
                 json.dump(data, f, indent=2)
@@ -492,6 +494,29 @@ def _settings_file_exists() -> bool:
 
 
 
+def normalize_user_symbol(sym: str) -> str:
+    """
+    Cleans up user symbol input and normalises common variations/typos:
+    - XAG/USA -> XAG/USD, XAU/USA -> XAU/USD
+    - BTCUSDT -> BTC/USD, ETHUSDT -> ETH/USD
+    - EURUSD  -> EUR/USD, GBPJPY  -> GBP/JPY
+    """
+    if not sym:
+        return sym
+    s = sym.upper().strip().replace(" ", "")
+    if s.endswith("/USA"):
+        s = s[:-4] + "/USD"
+    elif s.endswith("USA") and "/" not in s and len(s) > 3:
+        s = s[:-3] + "/USD"
+    elif s.endswith("/USDT"):
+        s = s[:-5] + "/USD"
+    elif s.endswith("USDT") and "/" not in s and len(s) > 4:
+        s = s[:-4] + "/USD"
+    elif "/" not in s and len(s) == 6:
+        s = s[:3] + "/" + s[3:]
+    return s
+
+
 def _handle_analyze(chat_id, args):
     VALID_STACKS = list(TF_STACKS.keys())
     if not args:
@@ -506,7 +531,7 @@ def _handle_analyze(chat_id, args):
         send_message(chat_id, f"⏳ Please wait *{wait}s* before another `/analyze`.")
         return
 
-    symbol    = args[0].upper().replace(" ", "")
+    symbol    = normalize_user_symbol(args[0])
     _record_recent_symbol(chat_id, symbol)
     stack_arg = args[1].lower() if len(args) > 1 else "intraday"
     if stack_arg not in VALID_STACKS:
@@ -536,7 +561,7 @@ def _handle_analyze(chat_id, args):
             # Single-pass analysis with in-flight smart news evaluation
             report = run_full_analysis(symbol, stack_name=stack_arg, smart_news=True, use_nlp=False)
             if not report or "error" in report:
-                send_message(chat_id, f"⚠️ Analysis failed, please try again")
+                send_message(chat_id, f"⚠️ Analysis failed for `{symbol}`. Please try again.")
                 return
 
             # Always generate NLP
@@ -555,8 +580,12 @@ def _handle_analyze(chat_id, args):
                 signal_id=report.get("SIGNAL_ID"))
 
         except Exception as e:
-            send_message(chat_id, f"⚠️ Analysis failed, please try again")
-            log("ERROR", "analyze_exception", chat_id=chat_id, symbol=symbol, error=str(e))
+            err_msg = str(e)
+            if "All data sources failed" in err_msg:
+                send_message(chat_id, f"⚠️ Could not find market data for `{symbol}`.\nPlease verify the symbol ticker (e.g. `XAG/USD` for Silver, `XAU/USD` for Gold, `BTC/USD`, `EUR/USD`).")
+            else:
+                send_message(chat_id, f"⚠️ Analysis failed for `{symbol}`. Please try again.")
+            log("ERROR", "analyze_exception", chat_id=chat_id, symbol=symbol, error=err_msg)
 
     threading.Thread(target=_run_analysis_work, daemon=True).start()
 
@@ -597,7 +626,7 @@ def _handle_mtf(chat_id, args):
     if len(args) == 1:
         args = [args[0], "1h"]
 
-    symbol   = args[0].upper().replace(" ", "")
+    symbol   = normalize_user_symbol(args[0])
     tf_input = args[1].lower().replace(" ", "")
     tf       = _TF_ALIASES.get(tf_input)
 
@@ -632,7 +661,7 @@ def _handle_mtf(chat_id, args):
             # Single-pass analysis with in-flight smart news evaluation
             report = run_full_analysis(symbol, stack_name=stack, smart_news=True, use_nlp=False)
             if not report or "error" in report:
-                send_message(chat_id, "⚠️ Analysis failed, please try again")
+                send_message(chat_id, f"⚠️ Analysis failed for `{symbol}`. Please try again.")
                 return
 
             report["NLP_SUMMARY"] = generate_nlp_summary(report, symbol)
@@ -651,8 +680,12 @@ def _handle_mtf(chat_id, args):
                 conf=report.get("CONFIDENCE"), signal_id=report.get("SIGNAL_ID"))
 
         except Exception as e:
-            send_message(chat_id, "⚠️ Analysis failed, please try again")
-            log("ERROR", "mtf_exception", chat_id=chat_id, symbol=symbol, tf=tf, error=str(e))
+            err_msg = str(e)
+            if "All data sources failed" in err_msg:
+                send_message(chat_id, f"⚠️ Could not find market data for `{symbol}`.\nPlease verify the symbol ticker (e.g. `XAG/USD` for Silver, `XAU/USD` for Gold, `BTC/USD`, `EUR/USD`).")
+            else:
+                send_message(chat_id, f"⚠️ Analysis failed for `{symbol}`. Please try again.")
+            log("ERROR", "mtf_exception", chat_id=chat_id, symbol=symbol, tf=tf, error=err_msg)
 
     threading.Thread(target=_run_mtf_work, daemon=True).start()
 
@@ -670,7 +703,7 @@ def _handle_scalp(chat_id, args):
         send_message(chat_id, f"⏳ Scalp cooldown: *{wait}s* remaining.")
         return
 
-    symbol = args[0].upper().replace(" ", "")
+    symbol = normalize_user_symbol(args[0])
     _record_recent_symbol(chat_id, symbol)
 
     blocked, reason = is_drawdown_limit_hit()
@@ -696,7 +729,7 @@ def _handle_scalp(chat_id, args):
             result = run_multi_stack_analysis(symbol, use_nlp=False, no_news=True)
 
             if "error" in result or not result.get("top_setups"):
-                send_message(chat_id, f"⚠️ Analysis failed, please try again")
+                send_message(chat_id, f"⚠️ Analysis failed for `{symbol}`. Please try again.")
                 return
 
             best        = result["top_setups"][0]
@@ -727,7 +760,11 @@ def _handle_scalp(chat_id, args):
         except BaseException as e:
             tb_text = traceback.format_exc()
             print(tb_text, file=sys.stderr)
-            send_message(chat_id, "⚠️ Scalp analysis failed — check logs")
+            err_msg = str(e)
+            if "All data sources failed" in err_msg:
+                send_message(chat_id, f"⚠️ Could not find market data for `{symbol}`.\nPlease verify the symbol ticker (e.g. `XAG/USD` for Silver, `XAU/USD` for Gold, `BTC/USD`, `EUR/USD`).")
+            else:
+                send_message(chat_id, f"⚠️ Scalp analysis failed for `{symbol}`. Please try again.")
             log("ERROR", "scalp_exception", chat_id=chat_id, symbol=symbol, error=repr(e), traceback=tb_text)
 
     threading.Thread(target=_run_scalp_work, daemon=True).start()
@@ -953,33 +990,41 @@ def process_command(chat_id, command, args):
 
 def handle_callback(query):
     """Handles inline button presses (Took Trade / Skip / Symbol Selection)."""
-    chat_id     = query["message"]["chat"]["id"]
-    callback_id = query["id"]
-    data        = query.get("data", "")
+    try:
+        chat_id     = query.get("message", {}).get("chat", {}).get("id") or query.get("from", {}).get("id")
+        callback_id = query.get("id")
+        data        = query.get("data", "")
 
-    answer_callback(callback_id)
+        log("INFO", "callback_received", chat_id=chat_id, data=data)
+        if callback_id:
+            answer_callback(callback_id)
 
-    if data == "took_trade":
-        threading.Thread(target=_handle_took_trade, args=(chat_id,), daemon=True).start()
-    elif data.startswith("took:"):
-        # Format: took:SYMBOL:SIGNAL_ID
-        parts = data.split(":", 2)
-        sym = parts[1] if len(parts) > 1 else None
-        sig_id = parts[2] if len(parts) > 2 else None
-        threading.Thread(target=_handle_took_trade, args=(chat_id, sym, sig_id), daemon=True).start()
-    elif data == "skip_trade" or data.startswith("skip:"):
-        send_message(chat_id, "⏭️ Signal skipped. No trade recorded.")
-    elif data.startswith("symcmd:"):
-        parts = data.split(":")
-        if len(parts) >= 3:
-            cmd = parts[1]
-            sym = parts[2]
-            if cmd == "analyze":
-                threading.Thread(target=_handle_analyze, args=(chat_id, [sym]), daemon=True).start()
-            elif cmd == "scalp":
-                threading.Thread(target=_handle_scalp, args=(chat_id, [sym]), daemon=True).start()
-            elif cmd == "mtf":
-                threading.Thread(target=_handle_mtf, args=(chat_id, [sym, "1h"]), daemon=True).start()
+        if not chat_id:
+            return
+
+        if data == "took_trade":
+            threading.Thread(target=_handle_took_trade, args=(chat_id,), daemon=True).start()
+        elif data.startswith("took:"):
+            # Format: took:SYMBOL:SIGNAL_ID
+            parts = data.split(":", 2)
+            sym = parts[1] if len(parts) > 1 else None
+            sig_id = parts[2] if len(parts) > 2 else None
+            threading.Thread(target=_handle_took_trade, args=(chat_id, sym, sig_id), daemon=True).start()
+        elif data == "skip_trade" or data.startswith("skip:"):
+            send_message(chat_id, "⏭️ Signal skipped. No trade recorded.")
+        elif data.startswith("symcmd:"):
+            parts = data.split(":", 2)
+            if len(parts) >= 3:
+                cmd = parts[1]
+                sym = normalize_user_symbol(parts[2])
+                if cmd == "analyze":
+                    threading.Thread(target=_handle_analyze, args=(chat_id, [sym]), daemon=True).start()
+                elif cmd == "scalp":
+                    threading.Thread(target=_handle_scalp, args=(chat_id, [sym]), daemon=True).start()
+                elif cmd == "mtf":
+                    threading.Thread(target=_handle_mtf, args=(chat_id, [sym, "1h"]), daemon=True).start()
+    except Exception as e:
+        log("ERROR", "handle_callback_error", error=str(e), traceback=traceback.format_exc())
 
 
 # ─── Main Loop ────────────────────────────────────────────────────────────────

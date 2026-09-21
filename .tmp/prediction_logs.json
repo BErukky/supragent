@@ -214,5 +214,14 @@
     "entry_price": 13.006,
     "snapshot_close": 13.006,
     "outcome_checked": false
+  },
+  {
+    "timestamp": "2026-09-21 12:54:32.096674",
+    "symbol": "XAG/USD",
+    "action": "LONG_BIAS",
+    "confidence": 84.12,
+    "entry_price": 66.955,
+    "snapshot_close": 66.95500183105469,
+    "outcome_checked": false
   }
 ]

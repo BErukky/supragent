@@ -271,9 +271,9 @@ def fetch_via_yfinance(symbol, timeframe, limit, _retries=2):
         else:
             print(f"  yfinance data invalid: {msg}")
     except Exception as e:
-        if 'RateLimit' in type(e).__name__ and _retries > 0:
-            wait = (3 - _retries) * 10  # 10s, then 20s
-            print(f"  yfinance rate limited, retrying in {wait}s...")
+        if _retries > 0:
+            wait = (3 - _retries) * 3  # 3s, then 6s
+            print(f"  yfinance fetch transient error ({e}), retrying in {wait}s...")
             time.sleep(wait)
             return fetch_via_yfinance(symbol, timeframe, limit, _retries - 1)
         print(f"  yfinance failed: {e}")
