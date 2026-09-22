@@ -162,6 +162,45 @@ def get_stats(chat_id: str = None) -> dict:
 
 # ─── Price Monitor ────────────────────────────────────────────────────────────
 
+def _get_candle_high_low(symbol: str) -> tuple[float | None, float | None, float | None]:
+    """
+    Fetches recent 5m candle data for symbol to extract recent High and Low wicks.
+    Returns (max_high, min_low, latest_close).
+    Uses market_data.fetch_data with smart fallbacks and caching.
+    """
+    try:
+        from market_data import fetch_data
+        csv_path = fetch_data(symbol, timeframe='5m', limit=50)
+        if csv_path and os.path.exists(csv_path):
+            import pandas as pd
+            df = pd.read_csv(csv_path)
+            if not df.empty and 'high' in df.columns and 'low' in df.columns and 'close' in df.columns:
+                # Inspect the last 5 5m candles (~25 min of price action) to catch intra-candle spikes
+                recent_df = df.tail(5)
+                c_high = float(recent_df['high'].max())
+                c_low  = float(recent_df['low'].min())
+                c_close = float(df['close'].iloc[-1])
+                return c_high, c_low, c_close
+    except Exception as e:
+        print(f"[TRADE_MONITOR_WARN] Error fetching candle high/low for {symbol}: {e}", file=sys.stderr)
+
+    # Fallback: check if a recent 5m or 15m CSV is already in .tmp/
+    try:
+        import pandas as pd
+        safe = symbol.replace('/', '_')
+        for tf in ('5m', '15m'):
+            path = os.path.join('.tmp', f'{safe}_{tf}.csv')
+            if os.path.exists(path) and (time.time() - os.path.getmtime(path)) < 600:
+                df = pd.read_csv(path)
+                if not df.empty and 'high' in df.columns and 'low' in df.columns and 'close' in df.columns:
+                    recent_df = df.tail(3)
+                    return float(recent_df['high'].max()), float(recent_df['low'].min()), float(df['close'].iloc[-1])
+    except Exception:
+        pass
+
+    return None, None, None
+
+
 def _get_live_price(symbol: str) -> float | None:
     """Fetches a fresh live price for P&L display and trade monitoring — never reads stale CSVs.
     Priority:
@@ -196,14 +235,15 @@ def _get_live_price(symbol: str) -> float | None:
 
         if is_crypto or is_gold:
             import ccxt
-            target_symbol = "PAXG/USDT" if is_gold else symbol
+            target_symbols = ["PAXG/USDT"] if is_gold else [symbol, symbol.replace('/USD', '/USDT')]
             for exchange in (ccxt.binance({'timeout': 5000}), ccxt.bybit({'timeout': 5000})):
-                try:
-                    ticker = exchange.fetch_ticker(target_symbol)
-                    if ticker.get('last'):
-                        return float(ticker['last'])
-                except Exception:
-                    continue
+                for ts in target_symbols:
+                    try:
+                        ticker = exchange.fetch_ticker(ts)
+                        if ticker.get('last'):
+                            return float(ticker['last'])
+                    except Exception:
+                        continue
     except Exception:
         pass
 
@@ -230,7 +270,7 @@ def _get_live_price(symbol: str) -> float | None:
         fast_info = getattr(ticker, 'fast_info', None)
         if fast_info and getattr(fast_info, 'last_price', None):
             return float(fast_info.last_price)
-        hist = ticker.history(period="1d", interval="1m")
+        hist = ticker.history(period="1d", interval="1m", timeout=5)
         if not hist.empty and 'Close' in hist.columns:
             return float(hist['Close'].iloc[-1])
     except Exception:
@@ -253,56 +293,62 @@ def _get_live_price(symbol: str) -> float | None:
 
 
 def _check_trades(send_fn):
-    """Called periodically — checks all open trades for TP/SL hits."""
+    """Called periodically — checks all open trades for TP/SL hits.
+    Performs network calls OUTSIDE _trades_lock to avoid blocking Telegram commands.
+    """
     from bot_settings import record_trade_close, load_settings
+
+    # 1. Brief lock to snapshot open trades and collect symbols
+    with _trades_lock:
+        trades = _load_trades()
+        open_trades = [t for t in trades if t.get("status") == "OPEN"]
+        if not open_trades:
+            return
+
+    # 2. Network operations OUTSIDE the lock
+    unique_symbols = list({t.get("symbol", "") for t in open_trades if t.get("symbol")})
+    price_cache: dict[str, float | None] = {}
+    candle_high_cache: dict[str, float | None] = {}
+    candle_low_cache: dict[str, float | None] = {}
+
+    for sym in unique_symbols:
+        live_px = _get_live_price(sym)
+        c_high, c_low, c_close = _get_candle_high_low(sym)
+
+        # Combine live price with candle wick data
+        eff_high = live_px
+        eff_low  = live_px
+
+        if c_high is not None:
+            eff_high = max(live_px, c_high) if live_px is not None else c_high
+        if c_low is not None:
+            eff_low = min(live_px, c_low) if live_px is not None else c_low
+
+        eff_px = live_px if live_px is not None else c_close
+
+        price_cache[sym] = eff_px
+        candle_high_cache[sym] = eff_high
+        candle_low_cache[sym] = eff_low
+
+    # 3. Brief lock to evaluate trades, commit mutations, and record account balances
+    alerts_to_send = []
 
     with _trades_lock:
         trades  = _load_trades()
         history = _load_history()
         updated = False
 
-        open_trades = [t for t in trades if t.get("status") == "OPEN"]
-        if not open_trades:
-            return
+        for t in trades:
+            if t.get("status") != "OPEN":
+                continue
 
-        # Pre-fetch live prices once per unique symbol to prevent rate limits and redundant network calls
-        unique_symbols = list({t.get("symbol", "") for t in open_trades if t.get("symbol")})
-        price_cache: dict[str, float | None] = {}
-        candle_data_cache: dict[str, tuple[float | None, float | None]] = {}
-
-        for sym in unique_symbols:
-            price = _get_live_price(sym)
-            price_cache[sym] = price
-
-            # Inspect recent 5m candle high/low if available to catch intra-candle wicks
-            c_high = price
-            c_low  = price
-            try:
-                safe = sym.replace('/', '_')
-                csv_path = os.path.join('.tmp', f'{safe}_5m.csv')
-                if os.path.exists(csv_path) and (time.time() - os.path.getmtime(csv_path)) < 600:
-                    import pandas as pd
-                    cdf = pd.read_csv(csv_path)
-                    if not cdf.empty and 'high' in cdf.columns and 'low' in cdf.columns:
-                        recent_h = float(cdf['high'].iloc[-1])
-                        recent_l = float(cdf['low'].iloc[-1])
-                        if price is not None:
-                            c_high = max(price, recent_h)
-                            c_low  = min(price, recent_l)
-                        else:
-                            c_high = recent_h
-                            c_low  = recent_l
-            except Exception:
-                pass
-            candle_data_cache[sym] = (c_high, c_low)
-
-        for t in open_trades:
             try:
                 symbol = t.get("symbol", "")
                 price  = price_cache.get(symbol)
-                candle_high, candle_low = candle_data_cache.get(symbol, (price, price))
+                candle_high = candle_high_cache.get(symbol, price)
+                candle_low  = candle_low_cache.get(symbol, price)
 
-                if price is None and candle_high is None:
+                if price is None and candle_high is None and candle_low is None:
                     print(f"[TRADE_MONITOR_WARN] Live price and candle data unavailable for {symbol} (trade {t.get('id')}) — skipping check this cycle", file=sys.stderr)
                     continue
 
@@ -326,14 +372,14 @@ def _check_trades(send_fn):
                     s = record_trade_close(pnl)
                     updated = True
 
-                    if send_fn and chat_id:
-                        send_fn(chat_id, (
+                    if chat_id:
+                        alerts_to_send.append((chat_id, (
                             f"🛑 *STOPPED OUT — {t['symbol']}*\n"
                             f"  Price hit SL: `{t['sl']}`\n"
                             f"  Loss:    `−${abs(pnl)}`  (−1.0x R)\n"
                             f"  Balance: `${round(s['account_balance'] - pnl, 2)}` → `${s['account_balance']}`\n"
                             f"  Today's P&L: `${s['daily_realized_pnl']}`"
-                        ))
+                        )))
                     continue
 
                 # ── Check TPs ────────────────────────────────────────────────────
@@ -365,7 +411,7 @@ def _check_trades(send_fn):
                         s = load_settings()
                         next_tp = t["tps"][i + 1] if i + 1 < len(t["tps"]) else None
 
-                        if send_fn and chat_id:
+                        if chat_id:
                             msg = (
                                 f"🎯 *TP{i+1} HIT — {t['symbol']}*\n"
                                 f"  Reached: `{tp}` ✓\n"
@@ -376,16 +422,24 @@ def _check_trades(send_fn):
                                 msg += f"  TP{i+2} still active at `{next_tp}`"
                             else:
                                 msg += "  🏁 Trade fully closed."
-                            send_fn(chat_id, msg)
+                            alerts_to_send.append((chat_id, msg))
 
             except Exception as trade_err:
                 tb = traceback.format_exc()
                 print(f"[TRADE_MONITOR_ERROR] Exception checking trade {t.get('id')} ({t.get('symbol')}): {trade_err}\n{tb}", file=sys.stderr)
                 continue
 
-        _save_trades([t for t in trades if t["status"] == "OPEN"])
         if updated:
+            _save_trades([t for t in trades if t["status"] == "OPEN"])
             _save_history(history)
+
+    # 4. Dispatch Telegram alerts OUTSIDE the lock
+    if send_fn:
+        for cid, msg in alerts_to_send:
+            try:
+                send_fn(cid, msg)
+            except Exception as e:
+                print(f"[TRADE_MONITOR_WARN] Error sending trade alert to {cid}: {e}", file=sys.stderr)
 
 
 def _monitor_loop(send_fn, interval: int):
@@ -399,7 +453,7 @@ def _monitor_loop(send_fn, interval: int):
         time.sleep(interval)
 
 
-def start_monitor(send_fn, interval: int = 300):
+def start_monitor(send_fn, interval: int = 60):
     """
     Starts the background price monitor thread (idempotent — only starts once).
     send_fn(chat_id, text) must send a Telegram message.

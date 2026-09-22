@@ -120,7 +120,7 @@ def fetch_via_twelvedata(symbol, timeframe, limit):
             f"&outputsize={limit}&apikey={api_key}&timezone=UTC&format=JSON"
         )
         print(f"  Trying Twelve Data: {pair} ({interval})")
-        resp = requests.get(url, timeout=10)
+        resp = requests.get(url, timeout=6)
         print(f"  Twelve Data HTTP {resp.status_code} | url_tail: ...{url[-60:]}")
         if resp.status_code != 200:
             print(f"  Twelve Data body: {resp.text[:200]}")
@@ -170,7 +170,7 @@ def fetch_via_alphavantage(symbol, timeframe, limit):
         url = f"https://www.alphavantage.co/query?function=FX_DAILY&from_symbol={from_curr}&to_symbol={to_curr}&apikey={api_key}&outputsize=full&datatype=csv"
         
         print(f"  Trying Alpha Vantage: {from_curr}/{to_curr} (daily)")
-        resp = requests.get(url, timeout=10)
+        resp = requests.get(url, timeout=6)
         print(f"  Alpha Vantage HTTP {resp.status_code} | has_timestamp: {'timestamp' in resp.text} | has_Note: {'Note' in resp.text} | body[:150]: {resp.text[:150]}")
         
         if resp.status_code == 200 and 'timestamp' in resp.text:
@@ -252,7 +252,7 @@ def fetch_via_yfinance(symbol, timeframe, limit, _retries=2):
         import yfinance as yf
         print(f"  Trying yfinance: {yf_symbol} ({yf_interval}, {period})")
 
-        data = yf.download(yf_symbol, period=period, interval=yf_interval, progress=False)
+        data = yf.download(yf_symbol, period=period, interval=yf_interval, progress=False, timeout=8)
         
         if data.empty:
             return None

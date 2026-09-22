@@ -16,7 +16,7 @@ DEFAULTS = {
     "account_balance":      60.0,
     "risk_per_trade_pct":   20.0,   # % of balance per trade
     "daily_drawdown_limit": 50.0,   # % of starting balance — pauses bot if hit
-    "monitor_interval":     300,    # seconds between price checks for open trades
+    "monitor_interval":     60,     # seconds between price checks for open trades
     "daily_start_balance":  None,   # set on first trade of the day
     "daily_realized_pnl":   0.0,    # sum of closed trade P&L today
     "daily_date":           None,   # YYYY-MM-DD — resets counters when date changes

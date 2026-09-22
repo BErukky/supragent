@@ -837,7 +837,7 @@ def _handle_took_trade(chat_id, symbol: str = None, signal_id: str = None):
         f"  SL:        `{risk['STOP_LOSS']}`\n"
         f"  Size:      `{risk.get('POSITION_SIZE_UNITS', 0)} units`\n"
         f"  Risk:      `${risk.get('RISK_AMOUNT_USD', 0)}` ({s['risk_per_trade_pct']}% of ${s['account_balance']})\n\n"
-        f"📡 _Monitoring price every {s.get('monitor_interval', 300)//60} min..._"
+        f"📡 _Monitoring price every {s.get('monitor_interval', 60)}s..._"
     )
     log("INFO", "trade_registered", chat_id=chat_id, symbol=trade_symbol, direction=direction, signal_id=signal_id)
 
@@ -1041,7 +1041,7 @@ def main_loop():
     register_bot_commands()
 
     # Start background trade price monitor
-    monitor_interval = int(os.environ.get("MONITOR_INTERVAL", 300))
+    monitor_interval = int(os.environ.get("MONITOR_INTERVAL", 60))
     start_monitor(send_fn=lambda cid, txt: send_message(cid, txt), interval=monitor_interval)
 
     log("INFO", "bot_online", allowed_chat=ALLOWED_CHAT_ID)

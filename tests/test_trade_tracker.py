@@ -194,11 +194,13 @@ def test_check_trades_symbol_caching_and_sl():
     def mock_send(cid, msg):
         send_messages.append((cid, msg))
 
-    # Mock _get_live_price to verify it is called only ONCE for XAU/USD per cycle
+    # Mock _get_live_price and _get_candle_high_low to verify calls per cycle
     # Price is 2485.0 -> t2 is stopped out (SL 2490.0), t1 is still open (SL 2480.0)
-    with patch.object(trade_tracker, "_get_live_price", return_value=2485.0) as mock_price:
+    with patch.object(trade_tracker, "_get_live_price", return_value=2485.0) as mock_price, \
+         patch.object(trade_tracker, "_get_candle_high_low", return_value=(2486.0, 2484.0, 2485.0)) as mock_candle:
         trade_tracker._check_trades(mock_send)
         assert mock_price.call_count == 1
+        assert mock_candle.call_count == 1
 
     # Check alert was sent to user_2 only
     assert len(send_messages) == 1
@@ -210,3 +212,172 @@ def test_check_trades_symbol_caching_and_sl():
     open_trades_u2 = trade_tracker.get_open_trades("user_2")
     assert len(open_trades_u1) == 1
     assert len(open_trades_u2) == 0
+
+
+def test_check_trades_candle_wick_sl_short_breach():
+    """
+    Real-world case: SHORT trade with SL at 4376.06.
+    Current spot price is 4303.48 (below SL), but intra-candle High spiked to 4391.08.
+    The monitor MUST detect the SL hit and send the alert.
+    """
+    trade = trade_tracker.register_trade(
+        symbol="XAU/USD",
+        direction="SHORT",
+        entry=4354.07,
+        sl=4376.06,
+        tps=[4293.33, 4232.59],
+        size_units=3.0,
+        risk_usd=67.4,
+        chat_id="user_gold"
+    )
+
+    send_messages = []
+    def mock_send(cid, msg):
+        send_messages.append((cid, msg))
+
+    # Spot price is 4303.48 (would fail if spot-only), but candle high is 4391.08 (SL breached!)
+    with patch.object(trade_tracker, "_get_live_price", return_value=4303.48), \
+         patch.object(trade_tracker, "_get_candle_high_low", return_value=(4391.08, 4300.00, 4303.48)):
+        trade_tracker._check_trades(mock_send)
+
+    assert len(send_messages) == 1
+    assert send_messages[0][0] == "user_gold"
+    assert "STOPPED OUT — XAU/USD" in send_messages[0][1]
+    assert "4376.06" in send_messages[0][1]
+
+    # Trade should now be CLOSED in trades.json and recorded in history
+    assert len(trade_tracker.get_open_trades("user_gold")) == 0
+    history = trade_tracker._load_history()
+    assert len(history) == 1
+    assert history[0]["status"] == "CLOSED"
+    assert history[0]["exit_price"] == 4376.06
+
+
+def test_check_trades_candle_wick_sl_long_breach():
+    """
+    LONG trade with SL at 1.0800.
+    Current spot price is 1.0850 (above SL), but intra-candle Low spiked down to 1.0780.
+    The monitor MUST detect the SL hit.
+    """
+    trade = trade_tracker.register_trade(
+        symbol="EUR/USD",
+        direction="LONG",
+        entry=1.0850,
+        sl=1.0800,
+        tps=[1.0920],
+        size_units=10000,
+        risk_usd=50.0,
+        chat_id="user_fx"
+    )
+
+    send_messages = []
+    def mock_send(cid, msg):
+        send_messages.append((cid, msg))
+
+    # Spot price is 1.0850, but candle low dropped to 1.0780 (SL breached!)
+    with patch.object(trade_tracker, "_get_live_price", return_value=1.0850), \
+         patch.object(trade_tracker, "_get_candle_high_low", return_value=(1.0870, 1.0780, 1.0850)):
+        trade_tracker._check_trades(mock_send)
+
+    assert len(send_messages) == 1
+    assert "STOPPED OUT — EUR/USD" in send_messages[0][1]
+    assert len(trade_tracker.get_open_trades("user_fx")) == 0
+
+
+def test_check_trades_candle_wick_tp_hit():
+    """
+    LONG trade with TP1 at 1.0900.
+    Current spot price is 1.0870, but candle high reached 1.0910.
+    The monitor MUST detect TP1 hit.
+    """
+    trade = trade_tracker.register_trade(
+        symbol="EUR/USD",
+        direction="LONG",
+        entry=1.0850,
+        sl=1.0800,
+        tps=[1.0900, 1.0950],
+        tp_profits=[50.0, 100.0],
+        size_units=10000,
+        risk_usd=50.0,
+        chat_id="user_tp"
+    )
+
+    send_messages = []
+    def mock_send(cid, msg):
+        send_messages.append((cid, msg))
+
+    with patch.object(trade_tracker, "_get_live_price", return_value=1.0870), \
+         patch.object(trade_tracker, "_get_candle_high_low", return_value=(1.0910, 1.0840, 1.0870)):
+        trade_tracker._check_trades(mock_send)
+
+    assert len(send_messages) == 1
+    assert "TP1 HIT — EUR/USD" in send_messages[0][1]
+    # Partial close: still open for TP2
+    open_trades = trade_tracker.get_open_trades("user_tp")
+    assert len(open_trades) == 1
+    assert 0 in open_trades[0]["tps_hit"]
+
+
+def test_lock_not_held_during_price_fetch_concurrency():
+    """
+    Verifies that trade tracker operations (register_trade, get_open_trades)
+    can execute concurrently while _check_trades is fetching prices.
+    """
+    import time
+    import threading
+
+    trade_tracker.register_trade(
+        symbol="BTC/USD",
+        direction="LONG",
+        entry=60000.0,
+        sl=58000.0,
+        tps=[65000.0],
+        size_units=0.1,
+        risk_usd=200.0,
+        chat_id="user_conc"
+    )
+
+    slow_fetch_started = threading.Event()
+    allow_fetch_finish = threading.Event()
+
+    def slow_live_price(sym):
+        slow_fetch_started.set()
+        allow_fetch_finish.wait(timeout=3)
+        return 61000.0
+
+    send_messages = []
+    monitor_thread = threading.Thread(
+        target=lambda: trade_tracker._check_trades(lambda cid, m: send_messages.append((cid, m)))
+    )
+
+    with patch.object(trade_tracker, "_get_live_price", side_effect=slow_live_price), \
+         patch.object(trade_tracker, "_get_candle_high_low", return_value=(61200.0, 60800.0, 61000.0)):
+        monitor_thread.start()
+        # Wait until monitor enters price fetching
+        assert slow_fetch_started.wait(timeout=2)
+
+        # While price fetching is in-flight, test that another thread can register a trade without blocking
+        t_start = time.time()
+        new_trade = trade_tracker.register_trade(
+            symbol="ETH/USD",
+            direction="LONG",
+            entry=3000.0,
+            sl=2900.0,
+            tps=[3200.0],
+            size_units=1.0,
+            risk_usd=100.0,
+            chat_id="user_conc2"
+        )
+        t_elapsed = time.time() - t_start
+
+        # Registration should complete instantly (< 0.2s) because lock is NOT held during price fetching
+        assert t_elapsed < 0.2
+        assert new_trade["symbol"] == "ETH/USD"
+
+        # Allow monitor thread to complete
+        allow_fetch_finish.set()
+        monitor_thread.join(timeout=2)
+
+    all_open = trade_tracker.get_open_trades()
+    assert len(all_open) == 2
+

@@ -1,9 +1,9 @@
 {
-  "account_balance": 177.0,
+  "account_balance": 139.6,
   "risk_per_trade_pct": 20.0,
   "daily_drawdown_limit": 50.0,
   "monitor_interval": 300,
-  "daily_start_balance": 147.0,
-  "daily_realized_pnl": 30.0,
-  "daily_date": "2026-09-21"
+  "daily_start_balance": 177.0,
+  "daily_realized_pnl": -37.4,
+  "daily_date": "2026-09-22"
 }
